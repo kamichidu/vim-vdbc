@@ -97,6 +97,22 @@ function! s:driver.disconnect()
     call self.psql.waitpid()
 endfunction
 
+function! s:driver.databases(args)
+    return self.select_as_dict('\l', {'keys': ['name', 'owner', 'encoding', 'collate', 'ctype', 'access_privileges']})
+endfunction
+
+function! s:driver.schemas(args)
+    return self.select_as_dict(join([
+    \       ' select                    ',
+    \       '     null as "catalog",    ',
+    \       '     nsp.nspname as "name" ',
+    \       ' from                      ',
+    \       '     pg_namespace as nsp   ',
+    \   ],
+    \   ''
+    \))
+endfunction
+
 ""
 " @function vdbc.tables
 " @param args {dict}
@@ -158,9 +174,7 @@ function! s:eval(psql, args)
 endfunction
 
 function! s:make_query(query)
-    if a:query =~# ';\s*$'
-        return a:query
-    elseif a:query =~# '\\\w\+\s*$'
+    if a:query =~# ';\s*$' || a:query =~# '^\s*\\'
         return a:query
     else
         return a:query . ';'

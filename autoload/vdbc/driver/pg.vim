@@ -98,7 +98,14 @@ function! s:driver.disconnect()
 endfunction
 
 function! s:driver.databases(args)
-    return self.select_as_dict('\l', {'keys': ['name', 'owner', 'encoding', 'collate', 'ctype', 'access_privileges']})
+    let records= s:eval(self.psql, {
+    \   'query':       '\l',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \})
+    let labels= ['name', 'owner', 'encoding', 'collate', 'ctype', 'access_privileges']
+
+    return map(records, 's:D.make(labels, v:val)')
 endfunction
 
 function! s:driver.schemas(args)

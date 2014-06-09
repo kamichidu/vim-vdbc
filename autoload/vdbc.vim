@@ -1,83 +1,155 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
+" vital
+let s:V= vital#of('vital')
+let s:L= s:V.import('Data.List')
+let s:D= s:V.import('Data.Dict')
+let s:S= s:V.import('Data.String')
+let s:M= s:V.import('Vim.Message')
+unlet s:V
+
+function! vdbc#Data_List()
+    return s:L
+endfunction
+function! vdbc#Data_Dict()
+    return s:D
+endfunction
+function! vdbc#Data_String()
+    return s:S
+endfunction
+function! vdbc#Vim_Message()
+    return s:M
+endfunction
+
+let s:vdbc= {
+\   'driver': {},
+\   'attrs':  {},
+\}
+
+" required methods
+function! s:vdbc.execute(query, ...)
+    call self.driver.execute(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+endfunction
+
+function! s:vdbc.select_as_list(query, ...)
+    return self.driver.select_as_list(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+endfunction
+
+function! s:vdbc.select_as_dict(query, ...)
+    return self.driver.select_as_dict(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+endfunction
+
+function! s:vdbc.disconnect()
+    call self.driver.disconnect()
+endfunction
+
+" optional methods
+function! s:vdbc.databases(...)
+    call s:throw_if_unsupported(self.driver, 'databases')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.databases(args)
+endfunction
+
+function! s:vdbc.catalogs(...)
+    call s:throw_if_unsupported(self.driver, 'catalogs')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.catalogs(args)
+endfunction
+
+function! s:vdbc.schemas(...)
+    call s:throw_if_unsupported(self.driver, 'schemas')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.schemas(args)
+endfunction
+
+" catalog, schema
+function! s:vdbc.tables(...)
+    call s:throw_if_unsupported(self.driver, 'tables')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.tables(args)
+endfunction
+
+" catalog, schema, table
+function! s:vdbc.columns(...)
+    call s:throw_if_unsupported(self.driver, 'tables')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.columns(l:args)
+endfunction
+
+" catalog, schema, table
+function! s:vdbc.foreign_keys(...)
+    call s:throw_if_unsupported(self.driver, 'foreign_keys')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.foreign_keys(args)
+endfunction
+
+" catalog, schema, table
+function! s:vdbc.indices(...)
+    call s:throw_if_unsupported(self.driver, 'indices')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.indices(args)
+endfunction
+
+" catalog, schema
+function! s:vdbc.sequences(...)
+    call s:throw_if_unsupported(self.driver, 'sequences')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.sequences(args)
+endfunction
+
+" catalog, schema
+function! s:vdbc.views(...)
+    call s:throw_if_unsupported(self.driver, 'views')
+
+    let args= get(a:000, 0, {})
+
+    return self.driver.views(args)
+endfunction
+
+"
+" config
+"   driver:   type('')
+"   host:     type('')
+"   port:     type(0)
+"   username: type('')
+"   dbname:   type('')
+"
 function! vdbc#connect(config)
-    let l:obj= {
-    \   '_config': a:config,
-    \   '_driver': vdbc#driver#{a:config.driver}#connect(a:config),
-    \}
+    let config= deepcopy(a:config)
 
-    function! l:obj.execute(query, ...)
-        call self._driver.execute(a:query, a:000)
-    endfunction
+    if !has_key(config, 'driver')
+        throw "vdbc: `driver' attribute is required."
+    endif
 
-    function! l:obj.select_as_list(query, ...)
-        return self._driver.select_as_list(a:query, a:000)
-    endfunction
+    let obj= deepcopy(s:vdbc)
 
-    function! l:obj.select_as_dict(query, ...)
-        return self._driver.select_as_dict(a:query, a:000)
-    endfunction
+    let obj.driver= vdbc#driver#{config.driver}#connect(config)
+    let obj.attrs=  config
 
-    function! l:obj.databases(...)
-        let l:args= get(a:000, 0, {})
+    return obj
+endfunction
 
-        return self._driver.databases(l:args)
-    endfunction
-
-    function! l:obj.catalogs(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.catalogs(l:args)
-    endfunction
-
-    function! l:obj.schemas(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.schemas(l:args)
-    endfunction
-
-    function! l:obj.tables(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.tables(l:args)
-    endfunction
-
-    function! l:obj.columns(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.columns(l:args)
-    endfunction
-
-    function! l:obj.foreign_keys(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.foreign_keys(l:args)
-    endfunction
-
-    function! l:obj.indices(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.indices(l:args)
-    endfunction
-
-    function! l:obj.sequences(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.sequences(l:args)
-    endfunction
-
-    function! l:obj.views(...)
-        let l:args= get(a:000, 0, {})
-
-        return self._driver.views(l:args)
-    endfunction
-
-    function! l:obj.disconnect()
-        call self._driver.disconnect()
-    endfunction
-
-    return l:obj
+function! s:throw_if_unsupported(driver, fname)
+    if !has_key(a:driver, a:fname)
+        throw printf("vdbc: `%s()' is not supported by `%s' driver", a:fname, a:driver.name)
+    endif
 endfunction
 
 let &cpo= s:save_cpo

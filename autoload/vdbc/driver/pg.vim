@@ -1,24 +1,62 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
-let s:V= vital#of('vdbc')
-let s:PM= s:V.import('ProcessManager')
-let s:D=  s:V.import('Data.Dict')
-let s:L=  s:V.import('Data.List')
-unlet s:V
+let s:D= vdbc#Data_Dict()
+let s:L= vdbc#Data_List()
+let s:S= vdbc#Data_String()
 
 let s:driver= {
-\   '_config': {},
-\   '_psql': '',
-\   '_tag': '<<youjo>>',
+\   'psql':  {},
+\   'attrs': {
+\       'host':     'localhost',
+\       'port':     5432,
+\       'encoding': &encoding,
+\   },
 \}
+
+""
+" @function vdbc#driver#pg#connect
+" @param config {Dict}
+" @return {Dict}
+" @see vdbc
+"
+function! vdbc#driver#pg#connect(config)
+    let driver= deepcopy(s:driver)
+
+    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+
+    let parts= ['psql']
+
+    if has_key(driver.attrs, 'host')
+        call add(parts, '--host ' . driver.attrs.host)
+    endif
+    if has_key(driver.attrs, 'port')
+        call add(parts, '--port ' . driver.attrs.port)
+    endif
+    if has_key(driver.attrs, 'username')
+        call add(parts, '--username ' . driver.attrs.username)
+    endif
+    if has_key(driver.attrs, 'dbname')
+        call add(parts, '--dbname ' . driver.attrs.dbname)
+    endif
+
+    let psql_cmd= join(parts + ['--no-password', '--no-align', '--quiet'], ' ')
+
+    let driver.psql= vimproc#popen3(psql_cmd)
+
+    return driver
+endfunction
 
 ""
 " @function vdbc.execute
 " @param query {String}
 "
-function! s:driver.execute(query, ...)
-    call self._eval({'query': a:query, 'tuples_only': 'on'})
+function! s:driver.execute(args)
+    call s:eval(self.psql, {
+    \   'query':       a:args.query,
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \})
 endfunction
 
 ""
@@ -26,8 +64,12 @@ endfunction
 " @param query {String}
 " @return a list of list
 "
-function! s:driver.select_as_list(query, ...)
-    return self._select_as_list({'query': a:query, 'tuples_only': 'on'})
+function! s:driver.select_as_list(args)
+    return s:eval(self.psql, {
+    \   'query':       a:args.query,
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \})
 endfunction
 
 ""
@@ -35,20 +77,24 @@ endfunction
 " @param query {String}
 " @return a list of dict
 "
-function! s:driver.select_as_dict(query, ...)
-    let l:args= get(a:000, 0, {})
-    let l:list= self._select_as_list({'query': a:query, 'tuples_only': 'off'})
+function! s:driver.select_as_dict(args)
+    let records= s:eval(self.psql, {
+    \   'query':       a:args.query,
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'off',
+    \})
+    let labels= get(a:args, 'keys', records[0])
 
-    if empty(l:list)
-        return []
-    endif
-
-    let l:keys= get(l:args, 'keys', l:list[0])
-
-    return map(l:list[1 : -2], 's:D.make(l:keys, v:val)')
+    return map(records[1 : -2], 's:D.make(labels, v:val)')
 endfunction
 
-function! s:driver.schemas(args)
+""
+" 
+" @function vdbc.disconnect
+"
+function! s:driver.disconnect()
+    call self.psql.stdin.write('\q' . "\n")
+    call self.psql.waitpid()
 endfunction
 
 ""
@@ -57,7 +103,7 @@ endfunction
 " @return a list of string
 "
 function! s:driver.tables(args)
-    return self.select_as_dict(join([
+    let query= join([
     \       ' select                             ',
     \       '     null as "catalog",             ',
     \       '     nsp.nspname as "schema",       ',
@@ -80,97 +126,45 @@ function! s:driver.tables(args)
     \       '     nsp.nspname = ''public''       ',
     \   ],
     \   ''
-    \))
+    \)
+    return self.select_as_dict({'query': query})
 endfunction
 
-function! s:driver.columns(args)
-endfunction
+function! s:eval(psql, args)
+    call a:psql.stdin.write('\t ' . get(a:args, 'tuples_only', 'off') . "\n")
+    call a:psql.stdin.write(s:make_query(a:args.query) . "\n")
+    call a:psql.stdin.write('\echo ' . '<<<youjo>>>' . "\n")
 
-function! s:driver.foreign_keys(args)
-endfunction
+    let [out, err]= ['', '']
+    while !a:psql.stdout.eof
+        let out.= a:psql.stdout.read()
+        let err.= a:psql.stderr.read()
 
-function! s:driver.indices(args)
-endfunction
+        if out =~# '\%(^\|\r\=\n\)<<<youjo>>>\r\=\n'
+            break
+        endif
+    endwhile
 
-function! s:driver.sequences(args)
-endfunction
-
-function! s:driver.views(args)
-endfunction
-
-""
-" 
-" @function vdbc.disconnect
-"
-function! s:driver.disconnect()
-    call s:PM.term(self._psql)
-endfunction
-
-function! s:driver._select_as_list(args)
-    let l:output= self._eval(a:args)
-    let l:records= split(iconv(l:output, self._config.encoding, &encoding), "\r\\=\n")
-
-    return map(l:records, 'split(v:val, "|", 1)')
-endfunction
-
-function! s:driver._eval(args)
-    call s:PM.writeln(self._psql, '\t ' . get(a:args, 'tuples_only', 'off'))
-    call s:PM.writeln(self._psql, self._make_query(a:args.query))
-    call s:PM.writeln(self._psql, '\echo ' . self._tag)
-
-    let [l:stdout, l:stderr, l:status]= s:PM.read_wait(self._psql, self._config.timeout_length, [self._tag . "\r\\=\n"])
-
-    if l:status ==# 'timedout'
-        throw join(['vdbc: query timed out!', l:stderr], "\n    ")
-    elseif l:status !=# 'matched' || !empty(l:stderr)
-        throw 'vdbc: got an error (' . l:stderr . ')'
+    if !empty(err)
+        throw printf("vdbc: an error occured `%s'", err)
     endif
 
-    return l:stdout
+    let out= s:S.substitute_last(out, '\%(^\|\r\=\n\)<<<youjo>>>\r\=\n', '')
+
+    return map(
+    \   split(iconv(out, a:args.encoding, &encoding), '\r\=\n'),
+    \   'split(v:val, "|", 1)'
+    \)
 endfunction
 
-function! s:driver._make_query(query)
+function! s:make_query(query)
     if a:query =~# ';\s*$'
+        return a:query
+    elseif a:query =~# '\\\w\+\s*$'
         return a:query
     else
         return a:query . ';'
     endif
-endfunction
-
-""
-" @function vdbc#driver#pg#connect
-" @param config {Dict}
-" @return {Dict}
-" @see vdbc
-"
-function! vdbc#driver#pg#connect(config)
-    let l:obj= deepcopy(s:driver)
-
-    let l:obj._config= {}
-    let l:obj._config.host= get(a:config, 'host', 'localhost')
-    let l:obj._config.port= get(a:config, 'port', 5432)
-    let l:obj._config.username= get(a:config, 'username', 'anonymouse')
-    let l:obj._config.dbname= get(a:config, 'dbname', 'unknown')
-    let l:obj._config.timeout_length= get(a:config, 'timeout_length', 2.0)
-    let l:obj._config.encoding= get(a:config, 'encoding', &encoding)
-
-    let l:obj._psql= 'youjo'
-
-    let l:cmd= join([
-    \       'psql',
-    \       '--host', a:config.host,
-    \       '--port', a:config.port,
-    \       '--username', a:config.username,
-    \       '--dbname', a:config.dbname,
-    \       '--no-password',
-    \       '--no-align',
-    \       '--quiet',
-    \   ],
-    \   ' '
-    \)
-    call s:PM.touch(l:obj._psql, l:cmd)
-
-    return l:obj
 endfunction
 
 let &cpo= s:save_cpo

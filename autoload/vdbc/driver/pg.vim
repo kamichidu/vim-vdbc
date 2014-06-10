@@ -52,11 +52,12 @@ endfunction
 " @param query {String}
 "
 function! s:driver.execute(args)
-    call s:eval(self.psql, {
+    call join(s:eval(self.psql, {
     \   'query':       a:args.query,
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'on',
-    \})
+    \   'output':      0,
+    \}), "\n")
 endfunction
 
 ""
@@ -154,8 +155,25 @@ function! s:driver.tables(args)
 endfunction
 
 function! s:eval(psql, args)
+    if get(a:args, 'output', 1)
+        let ofilename= tempname()
+    elseif vimproc#util#is_windows()
+        let ofilename= 'nul'
+    else
+        let ofilename= '/dev/null'
+    endif
+
     call a:psql.stdin.write('\t ' . get(a:args, 'tuples_only', 'off') . "\n")
+    " output query result to temporary file
+    call a:psql.stdin.write('\o ' . ofilename . "\n")
     call a:psql.stdin.write(s:make_query(a:args.query) . "\n")
+    " reset
+    call a:psql.stdin.write('\o')
+
+    if !get(a:args, 'output', 1)
+        return []
+    endif
+
     call a:psql.stdin.write('\echo ' . '<<<youjo>>>' . "\n")
 
     let [out, err]= ['', '']
@@ -172,10 +190,10 @@ function! s:eval(psql, args)
         throw printf("vdbc: an error occured `%s'", err)
     endif
 
-    let out= s:S.substitute_last(out, '\%(^\|\r\=\n\)<<<youjo>>>\r\=\n', '')
+    let query_output= join(readfile(ofilename), "\n")
 
     return map(
-    \   split(iconv(out, a:args.encoding, &encoding), '\r\=\n'),
+    \   split(iconv(query_output, a:args.encoding, &encoding), '\r\=\n'),
     \   'split(v:val, "|", 1)'
     \)
 endfunction

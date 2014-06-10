@@ -12,12 +12,6 @@ let s:driver= {
 \   },
 \}
 
-""
-" @function vdbc#driver#pg#connect
-" @param config {Dict}
-" @return {Dict}
-" @see vdbc
-"
 function! vdbc#driver#pg#connect(config)
     let driver= deepcopy(s:driver)
 
@@ -47,10 +41,6 @@ function! vdbc#driver#pg#connect(config)
     return driver
 endfunction
 
-""
-" @function vdbc.execute
-" @param query {String}
-"
 function! s:driver.execute(args)
     call join(s:eval(self.psql, {
     \   'query':       a:args.query,
@@ -60,11 +50,6 @@ function! s:driver.execute(args)
     \}), "\n")
 endfunction
 
-""
-" @function vdbc.select_as_list
-" @param query {String}
-" @return a list of list
-"
 function! s:driver.select_as_list(args)
     return s:eval(self.psql, {
     \   'query':       a:args.query,
@@ -73,11 +58,6 @@ function! s:driver.select_as_list(args)
     \})
 endfunction
 
-""
-" @function vdbc.select_as_dict
-" @param query {String}
-" @return a list of dict
-"
 function! s:driver.select_as_dict(args)
     let records= s:eval(self.psql, {
     \   'query':       a:args.query,
@@ -89,10 +69,6 @@ function! s:driver.select_as_dict(args)
     return map(records[1 : -2], 's:D.make(labels, v:val)')
 endfunction
 
-""
-" 
-" @function vdbc.disconnect
-"
 function! s:driver.disconnect()
     call self.psql.stdin.write('\q' . "\n")
     call self.psql.waitpid()
@@ -121,11 +97,6 @@ function! s:driver.schemas(args)
     \))
 endfunction
 
-""
-" @function vdbc.tables
-" @param args {dict}
-" @return a list of string
-"
 function! s:driver.tables(args)
     let query= join([
     \       ' select                             ',

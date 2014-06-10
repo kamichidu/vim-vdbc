@@ -2,15 +2,13 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let s:D= vdbc#Data_Dict()
-let s:L= vdbc#Data_List()
-let s:S= vdbc#Data_String()
 
 let s:driver= {
 \   'psql':  {},
 \   'attrs': {
 \       'host':     'localhost',
 \       'port':     5432,
-\       'encoding': &encoding,
+\       'encoding': 'utf8',
 \   },
 \}
 
@@ -43,6 +41,8 @@ function! vdbc#driver#pg#connect(config)
     let psql_cmd= join(parts + ['--no-password', '--no-align', '--quiet'], ' ')
 
     let driver.psql= vimproc#popen3(psql_cmd)
+
+    call driver.execute({'query': '\encoding UTF-8'})
 
     return driver
 endfunction

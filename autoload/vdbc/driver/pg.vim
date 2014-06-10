@@ -36,6 +36,11 @@ function! vdbc#driver#pg#connect(config)
 
     let driver.psql= vimproc#popen3(psql_cmd)
 
+    " attach utility functions
+    function! driver.psql.stdin.writeln(...)
+        call self.write(get(a:000, 0, '') . "\n")
+    endfunction
+
     call driver.execute({'query': '\encoding UTF-8'})
 
     return driver
@@ -70,7 +75,7 @@ function! s:driver.select_as_dict(args)
 endfunction
 
 function! s:driver.disconnect()
-    call self.psql.stdin.write('\q' . "\n")
+    call self.psql.stdin.writeln('\q')
     call self.psql.waitpid()
 endfunction
 
@@ -134,18 +139,18 @@ function! s:eval(psql, args)
         let ofilename= '/dev/null'
     endif
 
-    call a:psql.stdin.write('\t ' . get(a:args, 'tuples_only', 'off') . "\n")
+    call a:psql.stdin.writeln('\t ' . get(a:args, 'tuples_only', 'off'))
     " output query result to temporary file
-    call a:psql.stdin.write('\o ' . ofilename . "\n")
-    call a:psql.stdin.write(s:make_query(a:args.query) . "\n")
+    call a:psql.stdin.writeln('\o ' . ofilename)
+    call a:psql.stdin.writeln(s:make_query(a:args.query))
     " reset
-    call a:psql.stdin.write('\o')
+    call a:psql.stdin.writeln('\o')
 
     if !get(a:args, 'output', 1)
         return []
     endif
 
-    call a:psql.stdin.write('\echo ' . '<<<youjo>>>' . "\n")
+    call a:psql.stdin.writeln('\echo <<<youjo>>>')
 
     let [out, err]= ['', '']
     while !a:psql.stdout.eof

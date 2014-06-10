@@ -146,10 +146,6 @@ function! s:eval(psql, args)
     " reset
     call a:psql.stdin.writeln('\o')
 
-    if !get(a:args, 'output', 1)
-        return []
-    endif
-
     call a:psql.stdin.writeln('\echo <<<youjo>>>')
 
     let [out, err]= ['', '']
@@ -164,6 +160,10 @@ function! s:eval(psql, args)
 
     if !empty(err)
         throw printf("vdbc: an error occured `%s'", err)
+    endif
+
+    if !get(a:args, 'output', 1)
+        return []
     endif
 
     let query_output= join(readfile(ofilename), "\n")

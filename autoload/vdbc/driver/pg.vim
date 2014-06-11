@@ -34,12 +34,7 @@ function! vdbc#driver#pg#connect(config)
 
     let psql_cmd= join(parts + ['--no-password', '--no-align', '--quiet'], ' ')
 
-    let driver.psql= vimproc#popen3(psql_cmd)
-
-    " attach utility functions
-    function! driver.psql.stdin.writeln(...)
-        call self.write(get(a:000, 0, '') . "\n")
-    endfunction
+    let driver.psql= vdbc#process#open(psql_cmd)
 
     call driver.execute({'query': '\encoding UTF-8'})
 
@@ -75,7 +70,7 @@ function! s:driver.select_as_dict(args)
 endfunction
 
 function! s:driver.disconnect()
-    call self.psql.stdin.writeln('\q')
+    call self.psql.writeln('\q')
     call self.psql.waitpid()
 endfunction
 
@@ -139,27 +134,19 @@ function! s:eval(psql, args)
         let ofilename= '/dev/null'
     endif
 
-    call a:psql.stdin.writeln('\t ' . get(a:args, 'tuples_only', 'off'))
+    call a:psql.writeln('\t ' . get(a:args, 'tuples_only', 'off'))
     " output query result to temporary file
-    call a:psql.stdin.writeln('\o ' . ofilename)
-    call a:psql.stdin.writeln(s:make_query(a:args.query))
+    call a:psql.writeln('\o ' . ofilename)
+    call a:psql.writeln(s:make_query(a:args.query))
     " reset
-    call a:psql.stdin.writeln('\o')
+    call a:psql.writeln('\o')
 
-    call a:psql.stdin.writeln('\echo <<<youjo>>>')
+    call a:psql.writeln('\echo <<<youjo>>>')
 
-    let [out, err]= ['', '']
-    while !a:psql.stdout.eof
-        let out.= a:psql.stdout.read()
-        let err.= a:psql.stderr.read()
-
-        if out =~# '\%(^\|\r\=\n\)<<<youjo>>>\r\=\n'
-            break
-        endif
-    endwhile
+    let [out, err]= a:psql.read('<<<youjo>>>')
 
     if !empty(err)
-        throw printf("vdbc: an error occured `%s'", err)
+        throw printf("vdbc: an error occured `%s'", substitute(err, '\%(\r\n\|\r\|\n\)', "\n", 'g'))
     endif
 
     if !get(a:args, 'output', 1)
@@ -169,7 +156,7 @@ function! s:eval(psql, args)
     let query_output= join(readfile(ofilename), "\n")
 
     return map(
-    \   split(iconv(query_output, a:args.encoding, &encoding), '\r\=\n'),
+    \   split(iconv(query_output, a:args.encoding, &encoding), "\n"),
     \   'split(v:val, "|", 1)'
     \)
 endfunction

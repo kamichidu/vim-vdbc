@@ -56,6 +56,8 @@ extern "C"
      * this function will returns a json below.
      *
      *   * success - if terminating succeeded to be 1, otherwise 0
+     *   * message - an error message.
+     *               this key is only available when error occured.
      *
      * NOTE: this function must be called only once!
      *

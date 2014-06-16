@@ -22,6 +22,8 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
+let s:J= vdbc#Web_JSON()
+
 let s:driver= {
 \   'attrs': {
 \       'host':     'localhost',
@@ -30,19 +32,95 @@ let s:driver= {
 \   },
 \}
 
-function! vdbc#driver#pg#connect(config)
+function! vdbc#driver#pg_libpq#connect(config)
+    let driver= deepcopy(s:driver)
+
+    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+
+    let conninfo= {}
+
+    if has_key(driver.attrs, 'host')
+        let conninfo.host= driver.attrs.host
+    endif
+    if has_key(driver.attrs, 'port')
+        let conninfo.port= driver.attrs.port
+    endif
+    if has_key(driver.attrs, 'username')
+        let conninfo.user= driver.attrs.username
+    endif
+    if has_key(driver.attrs, 'password')
+        let conninfo.password= driver.attrs.password
+    endif
+    if has_key(driver.attrs, 'dbname')
+        let conninfo.dbname= driver.attrs.dbname
+    endif
+
+    let ret= s:libcall('connect', conninfo)
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    let driver.attrs.id= ret.id
+
+    return driver
 endfunction
 
 function! s:driver.execute(args)
+    throw 'vdbc: sorry, unimplemented yet'
 endfunction
 
 function! s:driver.select_as_list(args)
+    let ret= s:libcall('select_as_list', {
+    \   'id': self.attrs.id,
+    \   'query': a:args.query,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    return ret.result
 endfunction
 
 function! s:driver.select_as_dict(args)
+    throw 'vdbc: sorry, unimplemented yet'
 endfunction
 
 function! s:driver.disconnect()
+    let ret= s:libcall('disconnect', {
+    \   'id': self.attrs.id,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+endfunction
+
+function! s:libcall(func, dict)
+    if !exists('s:libname')
+        let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.so')
+
+        let ret= s:J.decode(libcall(s:libname, 'initialize', s:libname))
+
+        if float2nr(ret.success)
+            let s:handle= ret.handle
+        else
+            throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+        endif
+
+        augroup vdbc_driver_pg_libpq
+            autocmd!
+            autocmd VimLeavePre * if exists('s:handle') && !empty(s:handle)
+            autocmd VimLeavePre *     let ret= s:J.decode(libcall(s:libname, 'terminate', s:handle))
+            autocmd VimLeavePre *     if !float2nr(ret.success)
+            autocmd VimLeavePre *         throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+            autocmd VimLeavePre *     endif
+            autocmd VimLeavePre * endif
+        augroup END
+    endif
+
+    return s:J.decode(libcall(s:libname, a:func, s:J.encode(a:dict)))
 endfunction
 
 let &cpo= s:save_cpo

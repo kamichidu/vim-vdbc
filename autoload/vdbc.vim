@@ -6,6 +6,7 @@ let s:V= vital#of('vital')
 let s:L= s:V.import('Data.List')
 let s:D= s:V.import('Data.Dict')
 let s:S= s:V.import('Data.String')
+let s:J= s:V.import('Web.JSON')
 let s:M= s:V.import('Vim.Message')
 unlet s:V
 
@@ -17,6 +18,9 @@ function! vdbc#Data_Dict()
 endfunction
 function! vdbc#Data_String()
     return s:S
+endfunction
+function! vdbc#Web_JSON()
+    return s:J
 endfunction
 function! vdbc#Vim_Message()
     return s:M

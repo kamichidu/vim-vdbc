@@ -108,13 +108,13 @@ function! s:driver.databases(args)
 endfunction
 
 function! s:driver.schemas(args)
-    let query= join(readfile(globpath(&runtimepath, 'autoload/vdbc/driver/pg_schemas.sql')), "\n")
+    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_schemas.sql')), "\n")
 
     return self.select_as_dict({'query': query})
 endfunction
 
 function! s:driver.tables(args)
-    let query= join(readfile(globpath(&runtimepath, 'autoload/vdbc/driver/pg_tables.sql')), "\n")
+    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_tables.sql')), "\n")
 
     return self.select_as_dict({'query': query})
 endfunction

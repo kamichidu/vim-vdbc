@@ -7,7 +7,7 @@ Installation
 ----------------------------------------------------------------------------------------------------
 ```vim:
 NeoBundle 'kamichidu/vim-vdbc', {
-\   'depends': ['Shougo/vimproc.vim],
+\   'depends': ['Shougo/vimproc.vim'],
 \   'build': {
 \       'unix':    'make -f Makefile',
 \       'windows': 'make -f Makefile.w64',

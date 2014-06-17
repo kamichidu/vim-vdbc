@@ -4,6 +4,7 @@ set cpo&vim
 let s:D= vdbc#Data_Dict()
 
 let s:driver= {
+\   'name': 'pg',
 \   'psql':  {},
 \   'attrs': {
 \       'host':     'localhost',
@@ -139,6 +140,10 @@ function! s:make_query(query)
     else
         return a:query . ';'
     endif
+endfunction
+
+function! vdbc#driver#pg#get()
+    return deepcopy(s:driver)
 endfunction
 
 let &cpo= s:save_cpo

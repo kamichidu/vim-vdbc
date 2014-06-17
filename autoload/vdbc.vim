@@ -26,6 +26,14 @@ function! vdbc#Vim_Message()
     return s:M
 endfunction
 
+function! s:available_drivers()
+    let drivers= split(globpath(&runtimepath, 'autoload/vdbc/driver/*.vim'), '\%(\r\n\|\r\|\n\)')
+
+    return map(drivers, 'fnamemodify(v:val, ":t:r")')
+endfunction
+
+let s:available_drivers= s:available_drivers()
+
 let s:vdbc= {
 \   'driver': {},
 \   'attrs':  {},
@@ -140,6 +148,10 @@ function! vdbc#connect(config)
 
     if !has_key(config, 'driver')
         throw "vdbc: `driver' attribute is required."
+    endif
+
+    if !s:L.has(s:available_drivers, config.driver)
+        throw printf("vdbc: driver `%s' does not exists. availables are {%s}", config.driver, join(s:available_drivers, ', '))
     endif
 
     let obj= deepcopy(s:vdbc)

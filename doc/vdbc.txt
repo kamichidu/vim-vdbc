@@ -121,6 +121,9 @@ VDBC Object ~
 			table
 				default: "%"
 
+			types
+				default: ["table", "view"]
+
 		for more details, see Table Info Object section.
 
 															  *vdbc.columns()*

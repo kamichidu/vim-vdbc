@@ -38,13 +38,26 @@ INTERFACE													  *vdbc-interface*
 Functions ~
 															  *vdbc#connect()*
 	vdbc#connect({config})
-		connect to database. this function returns vdbc object.
+		connect to database. this function returns vdbc object. it takes
+		|Dictionary| to connect database. keys are:
 
 		dbname		(required)
+			|String| type.
+
 		host		(optional)
+			|String| type.
+
 		port		(optional)
+			|Number| type.
+
 		username	(optional)
+			|String| type.
+
 		password	(optional)
+			|String| type.
+
+		encoding	(optional)
+			|String| type.
 
 VDBC Object ~
 														   *vdbc.disconnect()*
@@ -54,30 +67,82 @@ VDBC Object ~
 															  *vdbc.execute()*
 	vdbc.execute({query}, ...)
 		execute {query} without query output.
+		it can takes |Dictionary| for 2nd argument.
+
+		params
+			parameters for prepared statement.
 
 													   *vdbc.select_as_list()*
 	vdbc.select_as_list({query}, ...)
-		execute {query} with query output.
+		similar to |vdbc.execute()| except to return query output |List| of
+		|List|.
 
 													   *vdbc.select_as_dict()*
 	vdbc.select_as_dict({query}, ...)
-		execute {query} with query output.
+		similar to |vdbc.execute()| except to return query output |List| of
+		|Dictionary|.
 
 															 *vdbc.catalogs()*
 	vdbc.catalogs(...)
 		NOTE: experimental
 
+		it returns a |List| of catalog name. it can takes |Dictionary| for
+		filtering catalogs. filtering keys are:
+
+			catalog
+				default: "%"
+
 															  *vdbc.schemas()*
 	vdbc.schemas(...)
 		NOTE: experimental
+
+		it returns a |List| of schema name. it can takes |Dictionary| for
+		filtering schemas. filtering keys are:
+
+			catalog
+				default: "%"
+
+			schema
+				default: "%"
 
 															   *vdbc.tables()*
 	vdbc.tables(...)
 		NOTE: experimental
 
+		it returns a |List| of table info object. it can takes |Dictionary|
+		for filtering table info. filtering keys are:
+
+			catalog
+				default: "%"
+
+			schema
+				default: "%"
+
+			table
+				default: "%"
+
+		for more details, see Table Info Object section.
+
 															  *vdbc.columns()*
 	vdbc.columns(...)
 		NOTE: experimental
+
+		it returns a |List| of column info object. it can take |Dictionary|
+		for filtering column info. filtering keys are:
+
+			catalog
+				default: "%"
+
+			schema
+				default: "%"
+
+			table
+				default: "%"
+
+			column
+				default: "%"
+
+		for more details, see Column Info Object section.
 
 														 *vdbc.foreign_keys()*
 	vdbc.foreign_keys(...)
@@ -91,14 +156,61 @@ VDBC Object ~
 	vdbc.sequences(...)
 		NOTE: experimental
 
-																*vdbc.views()*
-	vdbc.views(...)
-		NOTE: experimental
+Table Info Object ~
+
+	this has some attributes below.
+
+	catalog
+		table catalog name.
+
+	schema
+		schema name containing this table.
+
+	name
+		table (or view, synonym, etc) name.
+
+	type
+		one of the following:
+			"table"
+			"view"
+
+	remarks
+		table description. in other words, table comment.
+
+Column Info Object ~
+
+	this has some attributes below.
+
+	catalog
+		catalog name.
+
+	schema
+		schema name.
+
+	table
+		table name.
+
+	name
+		column name.
+
+	type_name
+		data type name.
+
+		NOTE: database dependent!
+
+    ordinal_position
+		column sequence number (starting with 1).
+
+	nullable
+		a column can accept null value, or not.
+
+	remarks
+		column description. in other words, column comment.
 
 ==============================================================================
 DRIVER															 *vdbc-driver*
 
-TODO
+the driver is a implementation of the vdbc interface.
 
 												   *vdbc-driver-specification*
 Specification ~

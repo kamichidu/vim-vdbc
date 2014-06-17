@@ -86,42 +86,14 @@ function! s:driver.databases(args)
 endfunction
 
 function! s:driver.schemas(args)
-    return self.select_as_dict(join([
-    \       ' select                    ',
-    \       '     null as "catalog",    ',
-    \       '     nsp.nspname as "name" ',
-    \       ' from                      ',
-    \       '     pg_namespace as nsp   ',
-    \   ],
-    \   ''
-    \))
+    let query= join(readfile(globpath(&runtimepath, 'autoload/vdbc/driver/pg_schemas.sql')), "\n")
+
+    return self.select_as_dict({'query': query})
 endfunction
 
 function! s:driver.tables(args)
-    let query= join([
-    \       ' select                             ',
-    \       '     null as "catalog",             ',
-    \       '     nsp.nspname as "schema",       ',
-    \       '     cls.relname as "name",         ',
-    \       '     ''table'' as "type",           ',
-    \       '     rem.description as "remarks"   ',
-    \       ' from                               ',
-    \       '     pg_class as cls                ',
-    \       '     inner join                     ',
-    \       '         pg_namespace as nsp        ',
-    \       '     on                             ',
-    \       '         cls.relnamespace = nsp.oid ',
-    \       '     left join                      ',
-    \       '         pg_description as rem      ',
-    \       '     on                             ',
-    \       '         cls.oid = rem.objoid and   ',
-    \       '         rem.objsubid = 0           ',
-    \       ' where                              ',
-    \       '     cls.relkind = ''r'' and        ',
-    \       '     nsp.nspname = ''public''       ',
-    \   ],
-    \   ''
-    \)
+    let query= join(readfile(globpath(&runtimepath, 'autoload/vdbc/driver/pg_tables.sql')), "\n")
+
     return self.select_as_dict({'query': query})
 endfunction
 

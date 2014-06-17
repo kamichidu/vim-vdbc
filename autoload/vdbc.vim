@@ -1,3 +1,24 @@
+" The MIT License (MIT)
+"
+" Copyright (c) 2014 kamichidu
+"
+" Permission is hereby granted, free of charge, to any person obtaining a copy
+" of this software and associated documentation files (the "Software"), to deal
+" in the Software without restriction, including without limitation the rights
+" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+" copies of the Software, and to permit persons to whom the Software is
+" furnished to do so, subject to the following conditions:
+"
+" The above copyright notice and this permission notice shall be included in
+" all copies or substantial portions of the Software.
+"
+" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+" THE SOFTWARE.
 let s:save_cpo= &cpo
 set cpo&vim
 
@@ -69,6 +90,12 @@ function! s:vdbc.catalogs(...)
     call s:throw_if_unsupported(self.driver, 'catalogs')
 
     let args= get(a:000, 0, {})
+    let args= extend(
+    \   {
+    \       'catalog': '%',
+    \   },
+    \   args
+    \)
 
     return self.driver.catalogs(args)
 endfunction
@@ -77,6 +104,13 @@ function! s:vdbc.schemas(...)
     call s:throw_if_unsupported(self.driver, 'schemas')
 
     let args= get(a:000, 0, {})
+    let args= extend(
+    \   {
+    \       'catalog': '%',
+    \       'schema':  '%',
+    \   },
+    \   args
+    \)
 
     return self.driver.schemas(args)
 endfunction
@@ -86,8 +120,27 @@ function! s:vdbc.tables(...)
     call s:throw_if_unsupported(self.driver, 'tables')
 
     let args= get(a:000, 0, {})
+    let args= extend(
+    \   {
+    \       'catalog': '%',
+    \       'schema':  '%',
+    \       'table':   '%',
+    \       'types':   ['table', 'view'],
+    \   },
+    \   args
+    \)
 
-    return self.driver.tables(args)
+    let infos= self.driver.tables(args)
+
+    let default_object= {
+    \   'catalog': '',
+    \   'schema':  '',
+    \   'name':    '',
+    \   'type':    '',
+    \   'remarks': '',
+    \}
+
+    return map(infos, 'extend(copy(default_object), v:val)')
 endfunction
 
 " catalog, schema, table
@@ -95,8 +148,30 @@ function! s:vdbc.columns(...)
     call s:throw_if_unsupported(self.driver, 'tables')
 
     let args= get(a:000, 0, {})
+    let args= extend(
+    \   {
+    \       'catalog': '%',
+    \       'schema':  '%',
+    \       'table':   '%',
+    \       'column':  '%',
+    \   },
+    \   args
+    \)
 
-    return self.driver.columns(l:args)
+    let infos= self.driver.columns(args)
+
+    let default_object= {
+    \   'catalog':          '',
+    \   'schema':           '',
+    \   'table':            '',
+    \   'name':             '',
+    \   'type_name':        '',
+    \   'ordinal_position': -1,
+    \   'nullable':         1,
+    \   'remarks':          '',
+    \}
+
+    return map(infos, 'extend(copy(default_object), v:val)')
 endfunction
 
 " catalog, schema, table
@@ -124,15 +199,6 @@ function! s:vdbc.sequences(...)
     let args= get(a:000, 0, {})
 
     return self.driver.sequences(args)
-endfunction
-
-" catalog, schema
-function! s:vdbc.views(...)
-    call s:throw_if_unsupported(self.driver, 'views')
-
-    let args= get(a:000, 0, {})
-
-    return self.driver.views(args)
 endfunction
 
 "

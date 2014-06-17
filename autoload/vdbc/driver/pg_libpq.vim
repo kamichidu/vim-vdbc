@@ -24,13 +24,9 @@ set cpo&vim
 
 let s:J= vdbc#Web_JSON()
 
-let s:driver= {
-\   'attrs': {
-\       'host':     'localhost',
-\       'port':     5432,
-\       'encoding': 'utf8',
-\   },
-\}
+let s:driver= vdbc#driver#pg#get()
+
+let s:driver.name= 'pg_libpq'
 
 function! vdbc#driver#pg_libpq#connect(config)
     let driver= deepcopy(s:driver)

@@ -55,7 +55,7 @@ function! vdbc#driver#pg_libpq#connect(config)
         let conninfo.dbname= driver.attrs.dbname
     endif
 
-    let ret= s:libcall('connect', conninfo)
+    let ret= s:libcall('vdbc_pg_libpq_connect', conninfo)
 
     if !float2nr(ret.success)
         throw 'vdbc: ' . get(ret, 'message', 'unknown error')
@@ -71,7 +71,7 @@ function! s:driver.execute(args)
 endfunction
 
 function! s:driver.select_as_list(args)
-    let ret= s:libcall('select_as_list', {
+    let ret= s:libcall('vdbc_pg_libpq_select_as_list', {
     \   'id': self.attrs.id,
     \   'query': a:args.query,
     \})
@@ -88,7 +88,7 @@ function! s:driver.select_as_dict(args)
 endfunction
 
 function! s:driver.disconnect()
-    let ret= s:libcall('disconnect', {
+    let ret= s:libcall('vdbc_pg_libpq_disconnect', {
     \   'id': self.attrs.id,
     \})
 
@@ -99,9 +99,13 @@ endfunction
 
 function! s:libcall(func, dict)
     if !exists('s:libname')
-        let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.so')
+        if has('win32') || has('win64')
+            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.dll')
+        else
+            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.so')
+        endif
 
-        let ret= s:J.decode(libcall(s:libname, 'initialize', s:libname))
+        let ret= s:J.decode(libcall(s:libname, 'vdbc_pg_libpq_initialize', s:libname))
 
         if float2nr(ret.success)
             let s:handle= ret.handle
@@ -112,7 +116,7 @@ function! s:libcall(func, dict)
         augroup vdbc_driver_pg_libpq
             autocmd!
             autocmd VimLeavePre * if exists('s:handle') && !empty(s:handle)
-            autocmd VimLeavePre *     let ret= s:J.decode(libcall(s:libname, 'terminate', s:handle))
+            autocmd VimLeavePre *     let ret= s:J.decode(libcall(s:libname, 'vdbc_pg_libpq_terminate', s:handle))
             autocmd VimLeavePre *     if !float2nr(ret.success)
             autocmd VimLeavePre *         throw 'vdbc: ' . get(ret, 'message', 'unknown error')
             autocmd VimLeavePre *     endif

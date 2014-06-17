@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 #ifdef _WIN32
+#  include <windows.h>
 #else
 #  include <dlfcn.h>
 #endif
@@ -96,11 +97,12 @@ namespace
     static std::map<int, std::shared_ptr<PGconn>> connections;
 }
 
-char const* const initialize(char const* const libname)
+char const* const vdbc_pg_libpq_initialize(char const* const libname)
 {
     static std::string r;
 
 #ifdef _WIN32
+    void* handle= LoadLibrary(libname);
 #else
     void* handle= dlopen(libname, RTLD_NOW);
 
@@ -118,11 +120,14 @@ char const* const initialize(char const* const libname)
     return (r= json::value(retobj).serialize()).c_str();
 }
 
-char const* const terminate(char const* const handle)
+char const* const vdbc_pg_libpq_terminate(char const* const handle)
 {
     static std::string r;
 
 #ifdef _WIN32
+    void* p= str2ptr(handle);
+
+    FreeLibrary(static_cast<HMODULE>(p));
 #else
     void* p= str2ptr(handle);
 
@@ -144,7 +149,7 @@ char const* const terminate(char const* const handle)
     return (r= json::value(retobj).serialize()).c_str();
 }
 
-char const* const connect(char const* const a)
+char const* const vdbc_pg_libpq_connect(char const* const a)
 {
     static std::string r;
 
@@ -206,7 +211,7 @@ char const* const connect(char const* const a)
     return (r= json::value(retobj).serialize()).c_str();
 }
 
-char const* const disconnect(char const* const a)
+char const* const vdbc_pg_libpq_disconnect(char const* const a)
 {
     static std::string r;
 
@@ -239,7 +244,7 @@ char const* const disconnect(char const* const a)
     }
 }
 
-char const* const select_as_list(char const* const a)
+char const* const vdbc_pg_libpq_select_as_list(char const* const a)
 {
     static std::string r;
 
@@ -323,7 +328,7 @@ char const* const select_as_list(char const* const a)
     return (r= json::value(retobj).serialize()).c_str();
 }
 
-char const* const select_as_dict(char const* const a)
+char const* const vdbc_pg_libpq_select_as_dict(char const* const a)
 {
     static std::string r;
 

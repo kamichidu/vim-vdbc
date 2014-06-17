@@ -1,0 +1,6 @@
+CC=x86_64-w64-mingw32-g++
+CFLAGS=-std=c++0x -Wall -O2 --shared
+LDFLAGS=-lpq
+
+pg_libpq:
+	${CC} ${LDFLAGS} -o autoload/vdbc/driver/pg_libpq.dll ${CFLAGS} autoload/vdbc/driver/pg_libpq/pg_libpq.cpp

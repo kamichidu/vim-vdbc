@@ -23,7 +23,7 @@
 #define VDBC_DRIVER_PG_LIBPQ_H_
 
 #ifdef _WIN32
-#  define VDBC_API _declspec(dllexport)
+#  define VDBC_API __declspec(dllexport)
 #else
 #  define VDBC_API
 #endif
@@ -47,7 +47,7 @@ extern "C"
      * \param libname [in] self library name.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl initialize(char const* const libname);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_initialize(char const* const libname);
 
     /**
      * terminate the dynamic library.
@@ -64,7 +64,7 @@ extern "C"
      * \param handle [in] a handle that was returned initialize().
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl terminate(char const* const handle);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_terminate(char const* const handle);
 
     /**
      * create new connection for postgresql database.
@@ -88,31 +88,31 @@ extern "C"
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl connect(char const* const json);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_connect(char const* const json);
 
     /**
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl execute(char const* const json);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_execute(char const* const json);
 
     /**
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl select_as_list(char const* const json);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_select_as_list(char const* const json);
 
     /**
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl select_as_dict(char const* const json);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_select_as_dict(char const* const json);
 
     /**
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
-    VDBC_API char const* const __cdecl disconnect(char const* const json);
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_disconnect(char const* const json);
 }
 
 #endif // VDBC_DRIVER_PG_LIBPQ_H_

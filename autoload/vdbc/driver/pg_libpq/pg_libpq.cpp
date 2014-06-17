@@ -343,5 +343,73 @@ char const* const vdbc_pg_libpq_select_as_dict(char const* const a)
 
         args= parsed.first;
     }
-    return nullptr;
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::string const query= args["query"].get<std::string>();
+
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+    std::shared_ptr<PGresult> const query_result(PQexec(conn.get(), query.c_str()), [](PGresult* p){
+        if(p)
+        {
+            PQclear(p);
+        }
+    });
+
+    if(!query_result)
+    {
+        return (r= for_error(PQerrorMessage(conn.get()))).c_str();
+    }
+
+    switch(PQresultStatus(query_result.get()))
+    {
+        case PGRES_TUPLES_OK:
+            break;
+        default:
+            return (r= for_error(PQresultErrorMessage(query_result.get()))).c_str();
+    }
+
+    int const nfields= PQnfields(query_result.get());
+    int const ntuples= PQntuples(query_result.get());
+    json::array tuples;
+    for(int row= 0; row < ntuples; ++row)
+    {
+        json::object fields;
+        for(int col= 0; col < nfields; ++col)
+        {
+            std::string const label(PQfname(query_result.get(), col));
+
+            if(PQbinaryTuples(query_result.get()))
+            {
+                int const byte_length= PQgetlength(query_result.get(), row, col);
+                char const* const binary= PQgetvalue(query_result.get(), row, col);
+                std::stringstream ss;
+
+                for(int offset= 0; offset < byte_length; ++offset)
+                {
+                    int8_t const byte= static_cast<int8_t>(*(binary + offset));
+
+                    ss << byte;
+                }
+
+                fields[label]= json::value(ss.str());
+            }
+            else
+            {
+                fields[label]= json::value(std::string(PQgetvalue(query_result.get(), row, col)));
+            }
+        }
+
+        tuples.push_back(json::value(fields));
+    }
+
+    json::object retobj;
+
+    retobj["success"]= json::value(1.);
+    retobj["result"]=  json::value(tuples);
+
+    return (r= json::value(retobj).serialize()).c_str();
 }

@@ -80,7 +80,16 @@ function! s:driver.select_as_list(args)
 endfunction
 
 function! s:driver.select_as_dict(args)
-    throw 'vdbc: sorry, unimplemented yet'
+    let ret= s:libcall('vdbc_pg_libpq_select_as_dict', {
+    \   'id': self.attrs.id,
+    \   'query': a:args.query,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    return ret.result
 endfunction
 
 function! s:driver.disconnect()

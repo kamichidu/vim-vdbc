@@ -107,8 +107,8 @@ function! s:driver.databases(args)
     return map(records, 's:D.make(labels, v:val)')
 endfunction
 
-function! s:driver.schemas(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_schemas.sql')), "\n")
+function! s:driver.schemata(args)
+    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_schemata.sql')), "\n")
 
     return self.select_as_dict({'query': query})
 endfunction

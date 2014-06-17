@@ -100,8 +100,8 @@ function! s:vdbc.catalogs(...)
     return self.driver.catalogs(args)
 endfunction
 
-function! s:vdbc.schemas(...)
-    call s:throw_if_unsupported(self.driver, 'schemas')
+function! s:vdbc.schemata(...)
+    call s:throw_if_unsupported(self.driver, 'schemata')
 
     let args= get(a:000, 0, {})
     let args= extend(
@@ -112,7 +112,7 @@ function! s:vdbc.schemas(...)
     \   args
     \)
 
-    return self.driver.schemas(args)
+    return self.driver.schemata(args)
 endfunction
 
 " catalog, schema

@@ -252,17 +252,17 @@ char const* const vdbc_sqlite3_libsqlite3_select_as_list(char const* const a)
         }
     });
 
-    result = sqlite3_step(stmt.get());
-    if (result != SQLITE_ROW && result != SQLITE_OK && result != SQLITE_DONE) {
-        return (r= for_error(sqlite3_errstr(result))).c_str();
-    }
-
-    int const nfields= sqlite3_column_count(stmt.get());
-    int const ntuples= sqlite3_data_count(stmt.get());
-    
     json::array tuples;
-    for(int row= 0; row < ntuples; ++row)
-    {
+    while (1) {
+        result = sqlite3_step(stmt.get());
+        if (result == SQLITE_DONE) {
+            break;
+        }
+        if (result != SQLITE_ROW && result != SQLITE_OK) {
+            return (r= for_error(sqlite3_errstr(result))).c_str();
+        }
+        int const nfields= sqlite3_column_count(stmt.get());
+
         json::array fields;
         for(int col= 0; col < nfields; ++col)
         {
@@ -272,11 +272,6 @@ char const* const vdbc_sqlite3_libsqlite3_select_as_list(char const* const a)
         }
 
         tuples.push_back(json::value(fields));
-
-        result = sqlite3_step(stmt.get());
-        if (result != SQLITE_ROW && result != SQLITE_OK && result != SQLITE_DONE) {
-            return (r= for_error(sqlite3_errstr(result))).c_str();
-        }
     }
 
     json::object retobj;

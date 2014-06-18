@@ -68,7 +68,6 @@ function! s:libcall(func, dict)
             let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/sqlite3_libsqlite3.so')
         endif
 
-		let g:hoge = s:libname
         let ret= s:J.decode(libcall(s:libname, 'vdbc_sqlite3_libsqlite3_initialize', s:libname))
 
         if float2nr(ret.success)

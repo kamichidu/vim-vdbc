@@ -55,17 +55,17 @@ function! s:driver.select_as_dict(args)
 endfunction
 
 function! s:driver.disconnect()
-    call self.sqlite3.writeln('\q')
+    call self.sqlite3.writeln('.q')
     call self.sqlite3.waitpid()
 endfunction
 
 function! s:driver.databases(args)
     let records= s:eval(self.sqlite3, {
-    \   'query':       '\l',
+    \   'query':       '.databases',
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'on',
     \})
-    let labels= ['name', 'owner', 'encoding', 'collate', 'ctype', 'access_privileges']
+    let labels= ['name', 'name', 'file']
 
     return map(records, 's:D.make(labels, v:val)')
 endfunction

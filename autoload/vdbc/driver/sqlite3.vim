@@ -22,7 +22,7 @@ function! vdbc#driver#sqlite3#connect(config)
         call add(parts, driver.attrs.dbname)
     endif
 
-    let sqlite3_cmd= join(parts + [], ' ')
+    let sqlite3_cmd= join(parts, ' ')
 
     let driver.sqlite3= vdbc#process#open(sqlite3_cmd)
 
@@ -91,7 +91,6 @@ function! s:eval(sqlite3, args)
         let ofilename= '/dev/null'
     endif
 
-    "call a:sqlite3.writeln('.mode ' . get(a:args, 'mode', 'tabs'))
     " output query result to temporary file
     call a:sqlite3.writeln('.output ' . ofilename)
     call a:sqlite3.writeln(s:make_query(a:args.query))

@@ -297,5 +297,59 @@ char const* const vdbc_sqlite3_libsqlite3_select_as_dict(char const* const a)
 
         args= parsed.first;
     }
-    return nullptr;
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::string const query= args["query"].get<std::string>();
+
+    std::shared_ptr<sqlite3> const conn= connections.at(id);
+    sqlite3_stmt* pstmt= nullptr;
+    const char* tail= nullptr;
+    int result= sqlite3_prepare_v2(conn.get(), query.c_str(), -1, &pstmt, &tail);
+    if (result != 0) {
+        return (r= for_error(sqlite3_errstr(result))).c_str();
+    }
+    result= sqlite3_reset(pstmt);
+    if (result != SQLITE_ROW && result != SQLITE_OK && result != SQLITE_DONE) {
+        return (r= for_error(sqlite3_errstr(result))).c_str();
+    }
+    std::shared_ptr<sqlite3_stmt> stmt(pstmt, [](sqlite3_stmt* p){
+        if(p) {
+            sqlite3_finalize(p);
+        }
+    });
+
+    json::array tuples;
+    while (1) {
+        result = sqlite3_step(stmt.get());
+        if (result == SQLITE_DONE) {
+            break;
+        }
+        if (result != SQLITE_ROW && result != SQLITE_OK) {
+            return (r= for_error(sqlite3_errstr(result))).c_str();
+        }
+        int const nfields= sqlite3_column_count(stmt.get());
+
+        json::object fields;
+        for(int col= 0; col < nfields; ++col)
+        {
+            std::string const& label(sqlite3_column_name(stmt.get(), col));
+            const unsigned char* p= sqlite3_column_text(stmt.get(), col);
+            std::string s = (char*) p;
+
+            fields[label]= json::value(s);
+        }
+
+        tuples.push_back(json::value(fields));
+    }
+
+    json::object retobj;
+
+    retobj["success"]= json::value(1.);
+    retobj["result"]=  json::value(tuples);
+
+    return (r= json::value(retobj).serialize()).c_str();
 }

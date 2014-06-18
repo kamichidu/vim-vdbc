@@ -10,7 +10,7 @@ NeoBundle 'kamichidu/vim-vdbc', {
 \   'depends': ['Shougo/vimproc.vim'],
 \   'build': {
 \       'unix':    'make -f Makefile',
-\       'windows': 'make -f Makefile.w64',
+\       'windows': 'make -f Makefile.win64',
 \   },
 \}
 ```

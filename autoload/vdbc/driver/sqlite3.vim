@@ -7,8 +7,6 @@ let s:driver= {
 \   'name': 'sqlite3',
 \   'sqlite3':  {},
 \   'attrs': {
-\       'host':     'localhost',
-\       'port':     5432,
 \       'encoding': 'utf8',
 \   },
 \}
@@ -92,7 +90,6 @@ function! s:eval(sqlite3, args)
     else
         let ofilename= '/dev/null'
     endif
-	let ofilename = 'foo.log'
 
     "call a:sqlite3.writeln('.mode ' . get(a:args, 'mode', 'tabs'))
     " output query result to temporary file

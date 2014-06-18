@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 18-Jun-2014.
+Last Change: 19-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -64,6 +64,11 @@ VDBC Object ~
 	vdbc.disconnect()
 		disconnect from database.
 
+															  *vdbc.prepare()*
+	vdbc.prepare({query})
+		it returns Prepared Statement Object for later execution.
+		for more details, see Prepared Statement Object section.
+
 															  *vdbc.execute()*
 	vdbc.execute({query}, ...)
 		execute {query} without query output.
@@ -81,6 +86,12 @@ VDBC Object ~
 	vdbc.select_as_dict({query}, ...)
 		similar to |vdbc.execute()| except to return query output |List| of
 		|Dictionary|.
+
+															    *vdbc.begin()*
+	vdbc.begin()
+		it returns Transaction Object that enable transactions until the next
+		call to |tx.commit()| or |tx.rollback()|.
+		for more details, see Transaction Object section.
 
 															 *vdbc.catalogs()*
 	vdbc.catalogs(...)
@@ -158,6 +169,22 @@ VDBC Object ~
 															*vdbc.sequences()*
 	vdbc.sequences(...)
 		NOTE: experimental
+
+Prepared Statement Object ~
+
+	stmt.execute()
+
+	stmt.select_as_list()
+
+	stmt.select_as_dict()
+
+	stmt.finish()
+
+Transaction Object ~
+
+	tx.commit()
+
+	tx.rollback()
 
 Table Info Object ~
 

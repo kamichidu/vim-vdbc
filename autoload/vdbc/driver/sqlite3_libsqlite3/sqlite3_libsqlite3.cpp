@@ -212,6 +212,63 @@ char const* const vdbc_sqlite3_libsqlite3_disconnect(char const* const a)
     }
 }
 
+char const* const vdbc_sqlite3_libsqlite3_execute(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::string const query= args["query"].get<std::string>();
+
+    std::shared_ptr<sqlite3> const conn= connections.at(id);
+    sqlite3_stmt* pstmt= nullptr;
+    const char* tail= nullptr;
+    int result= sqlite3_prepare_v2(conn.get(), query.c_str(), -1, &pstmt, &tail);
+    if (result != 0) {
+        return (r= for_error(sqlite3_errstr(result))).c_str();
+    }
+    result= sqlite3_reset(pstmt);
+    if (result != SQLITE_ROW && result != SQLITE_OK && result != SQLITE_DONE) {
+        return (r= for_error(sqlite3_errstr(result))).c_str();
+    }
+    std::shared_ptr<sqlite3_stmt> stmt(pstmt, [](sqlite3_stmt* p){
+        if(p) {
+            sqlite3_finalize(p);
+        }
+    });
+
+    while (1) {
+        result = sqlite3_step(stmt.get());
+        if (result == SQLITE_DONE) {
+            break;
+        }
+        if (result != SQLITE_ROW && result != SQLITE_OK) {
+            return (r= for_error(sqlite3_errstr(result))).c_str();
+        }
+    }
+
+    json::object retobj;
+
+    retobj["success"]= json::value(1.);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
 char const* const vdbc_sqlite3_libsqlite3_select_as_list(char const* const a)
 {
     static std::string r;

@@ -30,7 +30,14 @@ function! vdbc#driver#sqlite3_libsqlite3#connect(config)
 endfunction
 
 function! s:driver.execute(args)
-    throw 'vdbc: sorry, unimplemented yet'
+    let ret= s:libcall('vdbc_sqlite3_libsqlite3_execute', {
+    \   'id': self.attrs.id,
+    \   'query': a:args.query,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
 endfunction
 
 function! s:driver.select_as_list(args)

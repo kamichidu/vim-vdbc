@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 19-Jun-2014.
+Last Change: 20-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -66,8 +66,8 @@ VDBC Object ~
 
 															  *vdbc.prepare()*
 	vdbc.prepare({query})
-		it returns Prepared Statement Object for later execution.
-		for more details, see Prepared Statement Object section.
+		it returns Statement Handle Object for later execution.
+		for more details, see Statement Handle Object section.
 
 															  *vdbc.execute()*
 	vdbc.execute({query}, ...)
@@ -170,7 +170,7 @@ VDBC Object ~
 	vdbc.sequences(...)
 		NOTE: experimental
 
-Prepared Statement Object ~
+Statement Handle Object ~
 
 	stmt.execute()
 

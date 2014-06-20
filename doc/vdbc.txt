@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 20-Jun-2014.
+Last Change: 21-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -31,6 +31,9 @@ Interface													  |vdbc-interface|
 Driver															 |vdbc-driver|
 	Specification								   |vdbc-driver-specification|
 	Standard Drivers							|vdbc-driver-standard-drivers|
+
+NOTE:
+these APIs still be under development, may be changed without any notice.
 
 ==============================================================================
 INTERFACE													  *vdbc-interface*
@@ -245,7 +248,76 @@ the driver is a implementation of the vdbc interface.
 												   *vdbc-driver-specification*
 Specification ~
 
-TODO
+all drivers must have some functions below:
+
+	vdbc#driver#{driver}#define()
+		returns a |Dictionary| of driver.
+
+	driver.connect({args})
+		connect a database.
+
+	driver.prepare({args})
+		it takes a |Dictionary|.
+
+		query	(required)
+			sql statement will be prepared.
+
+		it returns an id value for execution.
+
+	driver.execute({args})
+		executes a prepared statement, and no output.
+		it takes a |Dictionary| which has:
+
+		statement_id	(required)
+			prepared statement id.
+
+		bind_values		(required)
+			|List| will be binded for prepared statement.
+
+	driver.select_as_list({args})
+		executes and returns query output as |List| of |List|.
+		it takes a |Dictionary| which has:
+
+		statement_id	(required)
+			prepared statement id.
+
+		bind_values		(required)
+			|List| will be binded for prepared statement.
+
+	driver.select_as_dict({args})
+		executes and returns query output as |List| of |Dictionary|.
+		it takes a |Dictionary| which has:
+
+		statement_id	(required)
+			prepared statement id.
+
+		bind_values		(required)
+			|List| will be binded for prepared statement.
+
+	driver.disconnect()
+		disconnect related database.
+
+and optional functions are following:
+
+	driver.begin()
+
+	driver.commit()
+
+	driver.rollback()
+
+	vdbc.catalogs(...)
+
+	vdbc.schemata(...)
+
+	vdbc.tables(...)
+
+	vdbc.columns(...)
+
+	vdbc.foreign_keys(...)
+
+	vdbc.indices(...)
+
+	vdbc.sequences(...)
 
 												*vdbc-driver-standard-drivers*
 Standard Drivers ~

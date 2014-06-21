@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 21-Jun-2014.
+Last Change: 22-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -201,6 +201,8 @@ Transaction Object ~
 	tx.commit()
 
 	tx.rollback()
+
+	tx.is_active()
 
 Table Info Object ~
 

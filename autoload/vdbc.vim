@@ -115,6 +115,14 @@ function! s:vdbc.disconnect()
 endfunction
 
 " optional methods
+function! s:vdbc.begin()
+    call s:throw_if_unsupported(self.driver, 'begin')
+
+    call self.driver.begin()
+
+    return vdbc#transaction#new(self.driver)
+endfunction
+
 function! s:vdbc.databases(...)
     call s:throw_if_unsupported(self.driver, 'databases')
 

@@ -71,6 +71,42 @@ function! s:driver.disconnect()
     call self.sqlite3.waitpid()
 endfunction
 
+function! s:driver.begin()
+    try
+        let stmt_id= self.prepare({'query': 'begin transaction'})
+
+        call self.execute({'statement_id': stmt_id, 'bind_values': []})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
+endfunction
+
+function! s:driver.commit()
+    try
+        let stmt_id= self.prepare({'query': 'commit transaction'})
+
+        call self.execute({'statement_id': stmt_id, 'bind_values': []})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
+endfunction
+
+function! s:driver.rollback()
+    try
+        let stmt_id= self.prepare({'query': 'rollback transaction'})
+
+        call self.execute({'statement_id': stmt_id, 'bind_values': []})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
+endfunction
+
 function! s:driver.databases(args)
     let records= s:eval(self.sqlite3, {
     \   'query':       '.databases',

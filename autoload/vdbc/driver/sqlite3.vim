@@ -63,7 +63,7 @@ function! s:driver.select_as_dict(args)
     \})
     let labels= get(a:args, 'keys', records[0])
 
-    return map(records[1 : -2], 's:D.make(labels, v:val)')
+    return map(records[1 : -1], 's:D.make(labels, v:val)')
 endfunction
 
 function! s:driver.disconnect()

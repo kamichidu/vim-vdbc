@@ -23,8 +23,9 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let s:J= vdbc#Web_JSON()
+let s:S= vdbc#Data_String()
 
-let s:driver= vdbc#driver#pg#get()
+let s:driver= vdbc#driver#pg#define()
 
 let s:driver.name= 'pg_libpq'
 
@@ -58,14 +59,54 @@ function! s:driver.connect(config)
     let self.attrs.id= ret.id
 endfunction
 
+function! s:driver.prepare(args)
+    let query= a:args.query
+    let cnt= 0
+    while query =~# '?'
+        let cnt+= 1
+        let query= s:S.replace_first(query, '?', '$' . cnt)
+    endwhile
+
+    let ret= s:libcall('vdbc_pg_libpq_prepare', {
+    \   'id': self.attrs.id,
+    \   'query': query,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    return ret.statement_id
+endfunction
+
+function! s:driver.deallocate(args)
+    let ret= s:libcall('vdbc_pg_libpq_deallocate', {
+    \   'id': self.attrs.id,
+    \   'statement_id': a:args.statement_id,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+endfunction
+
 function! s:driver.execute(args)
-    throw 'vdbc: sorry, unimplemented yet'
+    let ret= s:libcall('vdbc_pg_libpq_execute', {
+    \   'id': self.attrs.id,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values': a:args.bind_values,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
 endfunction
 
 function! s:driver.select_as_list(args)
     let ret= s:libcall('vdbc_pg_libpq_select_as_list', {
     \   'id': self.attrs.id,
-    \   'query': a:args.query,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values': a:args.bind_values,
     \})
 
     if !float2nr(ret.success)
@@ -78,7 +119,8 @@ endfunction
 function! s:driver.select_as_dict(args)
     let ret= s:libcall('vdbc_pg_libpq_select_as_dict', {
     \   'id': self.attrs.id,
-    \   'query': a:args.query,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values': a:args.bind_values,
     \})
 
     if !float2nr(ret.success)

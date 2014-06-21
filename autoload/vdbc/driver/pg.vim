@@ -226,10 +226,6 @@ function! s:make_query(query)
     endif
 endfunction
 
-function! vdbc#driver#pg#get()
-    return deepcopy(s:driver)
-endfunction
-
 function! vdbc#driver#pg#define()
     return deepcopy(s:driver)
 endfunction

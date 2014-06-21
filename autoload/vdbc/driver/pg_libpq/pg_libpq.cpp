@@ -28,6 +28,7 @@
 #include <utility>
 #include <sstream>
 #include <stdint.h>
+#include <fstream>
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -63,6 +64,17 @@ namespace
         static int current_id= 0;
 
         return ++current_id;
+    }
+
+    std::string const generate_statement_name()
+    {
+        static int current_id= 0;
+
+        std::stringstream ss;
+
+        ss << "autogen_" << (++current_id);
+
+        return ss.str();
     }
 
     std::string const for_error(std::string const& message)
@@ -244,6 +256,179 @@ char const* const vdbc_pg_libpq_disconnect(char const* const a)
     }
 }
 
+char const* const vdbc_pg_libpq_prepare(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+
+    std::string const query= args["query"].get<std::string>();
+
+    std::string const statement_name= generate_statement_name();
+
+    std::shared_ptr<PGresult> const result(PQprepare(conn.get(), statement_name.c_str(), query.c_str(), 0, nullptr), [](PGresult* p){
+        if(p)
+        {
+            PQclear(p);
+        }
+    });
+
+    switch(PQresultStatus(result.get()))
+    {
+        case PGRES_COMMAND_OK:
+            break;
+        default:
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
+    }
+
+    json::object retobj;
+
+    retobj["success"]=      json::value(1.);
+    retobj["statement_id"]= json::value(statement_name);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
+char const* const vdbc_pg_libpq_deallocate(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+
+    std::string const statement_name= args["statement_id"].get<std::string>();
+    std::stringstream query;
+
+    query << "deallocate " << statement_name;
+
+    std::shared_ptr<PGresult> const result(PQexec(conn.get(), query.str().c_str()), [](PGresult* p){
+        if(p)
+        {
+            PQclear(p);
+        }
+    });
+
+    switch(PQresultStatus(result.get()))
+    {
+        case PGRES_COMMAND_OK:
+            break;
+        default:
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
+    }
+
+    json::object retobj;
+
+    retobj["success"]=      json::value(1.);
+    retobj["statement_id"]= json::value(statement_name);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
+char const* const vdbc_pg_libpq_execute(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+
+    std::string const statement_name= args["statement_id"].get<std::string>();
+
+    std::vector<char const*> params;
+    {
+        json::array const values= args["bind_values"].get<json::array>();
+        for(auto const& value : values)
+        {
+            if(value.is<std::string>())
+            {
+                params.push_back(value.get<std::string>().c_str());
+            }
+            else if(value.is<double>())
+            {
+                std::stringstream ss;
+
+                ss << value.get<double>();
+
+                params.push_back(ss.str().c_str());
+            }
+            else
+            {
+                params.push_back(nullptr);
+            }
+        }
+    }
+
+    std::shared_ptr<PGresult> const result(PQexecPrepared(conn.get(), statement_name.c_str(), params.size(), params.data(), nullptr, nullptr, 0), [](PGresult* p){
+        if(p)
+        {
+            PQclear(p);
+        }
+    });
+
+    switch(PQresultStatus(result.get()))
+    {
+        case PGRES_TUPLES_OK:
+        case PGRES_COMMAND_OK:
+            break;
+        default:
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
+    }
+
+    json::object retobj;
+
+    retobj["success"]= json::value(1.);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
 char const* const vdbc_pg_libpq_select_as_list(char const* const a)
 {
     static std::string r;
@@ -265,41 +450,62 @@ char const* const vdbc_pg_libpq_select_as_list(char const* const a)
     {
         return (r= for_error("unknown id")).c_str();
     }
-    std::string const query= args["query"].get<std::string>();
-
     std::shared_ptr<PGconn> const conn= connections.at(id);
-    std::shared_ptr<PGresult> const query_result(PQexec(conn.get(), query.c_str()), [](PGresult* p){
+
+    std::string const statement_name= args["statement_id"].get<std::string>();
+
+    std::vector<char const*> params;
+    {
+        json::array const values= args["bind_values"].get<json::array>();
+        for(auto const& value : values)
+        {
+            if(value.is<std::string>())
+            {
+                params.push_back(value.get<std::string>().c_str());
+            }
+            else if(value.is<double>())
+            {
+                std::stringstream ss;
+
+                ss << value.get<double>();
+
+                params.push_back(ss.str().c_str());
+            }
+            else
+            {
+                params.push_back(nullptr);
+            }
+        }
+    }
+
+    std::shared_ptr<PGresult> const result(PQexecPrepared(conn.get(), statement_name.c_str(), params.size(), params.data(), nullptr, nullptr, 0), [](PGresult* p){
         if(p)
         {
             PQclear(p);
         }
     });
 
-    if(!query_result)
-    {
-        return (r= for_error(PQerrorMessage(conn.get()))).c_str();
-    }
-
-    switch(PQresultStatus(query_result.get()))
+    switch(PQresultStatus(result.get()))
     {
         case PGRES_TUPLES_OK:
+        case PGRES_COMMAND_OK:
             break;
         default:
-            return (r= for_error(PQresultErrorMessage(query_result.get()))).c_str();
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
     }
 
-    int const nfields= PQnfields(query_result.get());
-    int const ntuples= PQntuples(query_result.get());
+    int const nfields= PQnfields(result.get());
+    int const ntuples= PQntuples(result.get());
     json::array tuples;
     for(int row= 0; row < ntuples; ++row)
     {
         json::array fields;
         for(int col= 0; col < nfields; ++col)
         {
-            if(PQbinaryTuples(query_result.get()))
+            if(PQbinaryTuples(result.get()))
             {
-                int const byte_length= PQgetlength(query_result.get(), row, col);
-                char const* const binary= PQgetvalue(query_result.get(), row, col);
+                int const byte_length= PQgetlength(result.get(), row, col);
+                char const* const binary= PQgetvalue(result.get(), row, col);
                 std::stringstream ss;
 
                 for(int offset= 0; offset < byte_length; ++offset)
@@ -313,7 +519,7 @@ char const* const vdbc_pg_libpq_select_as_list(char const* const a)
             }
             else
             {
-                fields.push_back(json::value(std::string(PQgetvalue(query_result.get(), row, col))));
+                fields.push_back(json::value(std::string(PQgetvalue(result.get(), row, col))));
             }
         }
 
@@ -349,43 +555,64 @@ char const* const vdbc_pg_libpq_select_as_dict(char const* const a)
     {
         return (r= for_error("unknown id")).c_str();
     }
-    std::string const query= args["query"].get<std::string>();
-
     std::shared_ptr<PGconn> const conn= connections.at(id);
-    std::shared_ptr<PGresult> const query_result(PQexec(conn.get(), query.c_str()), [](PGresult* p){
+
+    std::string const statement_name= args["statement_id"].get<std::string>();
+
+    std::vector<char const*> params;
+    {
+        json::array const values= args["bind_values"].get<json::array>();
+        for(auto const& value : values)
+        {
+            if(value.is<std::string>())
+            {
+                params.push_back(value.get<std::string>().c_str());
+            }
+            else if(value.is<double>())
+            {
+                std::stringstream ss;
+
+                ss << value.get<double>();
+
+                params.push_back(ss.str().c_str());
+            }
+            else
+            {
+                params.push_back(nullptr);
+            }
+        }
+    }
+
+    std::shared_ptr<PGresult> const result(PQexecPrepared(conn.get(), statement_name.c_str(), params.size(), params.data(), nullptr, nullptr, 0), [](PGresult* p){
         if(p)
         {
             PQclear(p);
         }
     });
 
-    if(!query_result)
-    {
-        return (r= for_error(PQerrorMessage(conn.get()))).c_str();
-    }
-
-    switch(PQresultStatus(query_result.get()))
+    switch(PQresultStatus(result.get()))
     {
         case PGRES_TUPLES_OK:
+        case PGRES_COMMAND_OK:
             break;
         default:
-            return (r= for_error(PQresultErrorMessage(query_result.get()))).c_str();
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
     }
 
-    int const nfields= PQnfields(query_result.get());
-    int const ntuples= PQntuples(query_result.get());
+    int const nfields= PQnfields(result.get());
+    int const ntuples= PQntuples(result.get());
     json::array tuples;
     for(int row= 0; row < ntuples; ++row)
     {
         json::object fields;
         for(int col= 0; col < nfields; ++col)
         {
-            std::string const label(PQfname(query_result.get(), col));
+            std::string const label(PQfname(result.get(), col));
 
-            if(PQbinaryTuples(query_result.get()))
+            if(PQbinaryTuples(result.get()))
             {
-                int const byte_length= PQgetlength(query_result.get(), row, col);
-                char const* const binary= PQgetvalue(query_result.get(), row, col);
+                int const byte_length= PQgetlength(result.get(), row, col);
+                char const* const binary= PQgetvalue(result.get(), row, col);
                 std::stringstream ss;
 
                 for(int offset= 0; offset < byte_length; ++offset)
@@ -399,7 +626,7 @@ char const* const vdbc_pg_libpq_select_as_dict(char const* const a)
             }
             else
             {
-                fields[label]= json::value(std::string(PQgetvalue(query_result.get(), row, col)));
+                fields[label]= json::value(std::string(PQgetvalue(result.get(), row, col)));
             }
         }
 

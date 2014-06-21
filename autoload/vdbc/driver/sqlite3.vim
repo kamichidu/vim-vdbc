@@ -12,21 +12,17 @@ let s:driver= {
 \}
 
 function! vdbc#driver#sqlite3#connect(config)
-    let driver= deepcopy(s:driver)
-
-    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+    let self.attrs= extend(self.attrs, deepcopy(a:config))
 
     let parts= ['sqlite3']
 
-    if has_key(driver.attrs, 'dbname')
-        call add(parts, driver.attrs.dbname)
+    if has_key(self.attrs, 'dbname')
+        call add(parts, self.attrs.dbname)
     endif
 
     let sqlite3_cmd= join(parts, ' ')
 
-    let driver.sqlite3= vdbc#process#open(sqlite3_cmd)
-
-    return driver
+    let self.sqlite3= vdbc#process#open(sqlite3_cmd)
 endfunction
 
 function! s:driver.execute(args)
@@ -125,6 +121,10 @@ function! s:make_query(query)
 endfunction
 
 function! vdbc#driver#sqlite3#get()
+    return deepcopy(s:driver)
+endfunction
+
+function! vdbc#driver#sqlite3#define()
     return deepcopy(s:driver)
 endfunction
 

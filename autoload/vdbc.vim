@@ -48,9 +48,16 @@ function! vdbc#Vim_Message()
 endfunction
 
 function! s:available_drivers()
-    let drivers= split(globpath(&runtimepath, 'autoload/vdbc/driver/*.vim'), '\%(\r\n\|\r\|\n\)')
+    let driver_names= map(
+    \   split(
+    \       globpath(&runtimepath, 'autoload/vdbc/driver/*.vim'),
+    \       '\%(\r\n\|\r\|\n\)'
+    \   ),
+    \   'fnamemodify(v:val, ":t:r")'
+    \)
+    let drivers= map(driver_names, 'vdbc#driver#{v:val}#define()')
 
-    return map(drivers, 'fnamemodify(v:val, ":t:r")')
+    return drivers
 endfunction
 
 let s:available_drivers= s:available_drivers()
@@ -61,16 +68,46 @@ let s:vdbc= {
 \}
 
 " required methods
+function! s:vdbc.prepare(query)
+    let stmt_id= self.driver.prepare({'query': a:query})
+
+    return vdbc#statement#new(self.driver, stmt_id)
+endfunction
+
 function! s:vdbc.execute(query, ...)
-    call self.driver.execute(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+    try
+        let stmt= self.prepare(a:query)
+
+        call stmt.execute(get(a:000, 0, []))
+    finally
+        if exists('stmt')
+            call stmt.finish()
+        endif
+    endtry
 endfunction
 
 function! s:vdbc.select_as_list(query, ...)
-    return self.driver.select_as_list(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+    try
+        let stmt= self.prepare(a:query)
+
+        return stmt.select_as_list(get(a:000, 0, []))
+    finally
+        if exists('stmt')
+            call stmt.finish()
+        endif
+    endtry
 endfunction
 
 function! s:vdbc.select_as_dict(query, ...)
-    return self.driver.select_as_dict(extend(deepcopy(get(a:000, 0, {})), {'query': a:query}))
+    try
+        let stmt= self.prepare(a:query)
+
+        return stmt.select_as_dict(get(a:000, 0, []))
+    finally
+        if exists('stmt')
+            call stmt.finish()
+        endif
+    endtry
 endfunction
 
 function! s:vdbc.disconnect()
@@ -216,14 +253,12 @@ function! vdbc#connect(config)
         throw "vdbc: `driver' attribute is required."
     endif
 
-    if !s:L.has(s:available_drivers, config.driver)
-        throw printf("vdbc: driver `%s' does not exists. availables are {%s}", config.driver, join(s:available_drivers, ', '))
-    endif
-
     let obj= deepcopy(s:vdbc)
 
-    let obj.driver= vdbc#driver#{config.driver}#connect(config)
+    let obj.driver= deepcopy(s:find_driver_by_name(s:available_drivers, config.driver))
     let obj.attrs=  config
+
+    call obj.driver.connect(config)
 
     return obj
 endfunction
@@ -232,6 +267,17 @@ function! s:throw_if_unsupported(driver, fname)
     if !has_key(a:driver, a:fname)
         throw printf("vdbc: `%s()' is not supported by `%s' driver", a:fname, a:driver.name)
     endif
+endfunction
+
+function! s:find_driver_by_name(list, name)
+    for driver in a:list
+        if driver.name ==# a:name
+            return driver
+        endif
+    endfor
+
+    let driver_names= map(copy(a:list), 'v:val.name')
+    throw printf("vdbc: driver `%s' does not exists. availables are {%s}", a:name, join(driver_names, ', '))
 endfunction
 
 let &cpo= s:save_cpo

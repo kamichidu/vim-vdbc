@@ -73,6 +73,18 @@ extern "C"
      * \param json [in] a string that json object was serialized.
      * \return a string that json object was serialized.
      */
+    VDBC_API char const* const __cdecl vdbc_sqlite3_libsqlite3_prepare(char const* const json);
+
+    /**
+     * \param json [in] a string that json object was serialized.
+     * \return a string that json object was serialized.
+     */
+    VDBC_API char const* const __cdecl vdbc_sqlite3_libsqlite3_deallocate(char const* const json);
+
+    /**
+     * \param json [in] a string that json object was serialized.
+     * \return a string that json object was serialized.
+     */
     VDBC_API char const* const __cdecl vdbc_sqlite3_libsqlite3_execute(char const* const json);
 
     /**

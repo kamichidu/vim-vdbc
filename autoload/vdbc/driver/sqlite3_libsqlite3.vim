@@ -7,15 +7,13 @@ let s:driver= vdbc#driver#sqlite3#get()
 
 let s:driver.name= 'sqlite3_libsqlite3'
 
-function! vdbc#driver#sqlite3_libsqlite3#connect(config)
-    let driver= deepcopy(s:driver)
-
-    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+function! s:driver.connect(config)
+    let self.attrs= extend(self.attrs, deepcopy(a:config))
 
     let conninfo= {}
 
-    if has_key(driver.attrs, 'dbname')
-        let conninfo.dbname= driver.attrs.dbname
+    if has_key(self.attrs, 'dbname')
+        let conninfo.dbname= self.attrs.dbname
     endif
 
     let ret= s:libcall('vdbc_sqlite3_libsqlite3_connect', conninfo)
@@ -24,15 +22,38 @@ function! vdbc#driver#sqlite3_libsqlite3#connect(config)
         throw 'vdbc: ' . get(ret, 'message', 'unknown error')
     endif
 
-    let driver.attrs.id= ret.id
+    let self.attrs.id= ret.id
+endfunction
 
-    return driver
+function! s:driver.prepare(args)
+    let ret= s:libcall('vdbc_sqlite3_libsqlite3_prepare', {
+    \   'id': self.attrs.id,
+    \   'query': a:args.query,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    return ret.statement_id
+endfunction
+
+function! s:driver.deallocate(args)
+    let ret= s:libcall('vdbc_sqlite3_libsqlite3_deallocate', {
+    \   'id': self.attrs.id,
+    \   'statement_id': a:args.statement_id,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
 endfunction
 
 function! s:driver.execute(args)
     let ret= s:libcall('vdbc_sqlite3_libsqlite3_execute', {
-    \   'id': self.attrs.id,
-    \   'query': a:args.query,
+    \   'id':           self.attrs.id,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values':  a:args.bind_values,
     \})
 
     if !float2nr(ret.success)
@@ -43,7 +64,8 @@ endfunction
 function! s:driver.select_as_list(args)
     let ret= s:libcall('vdbc_sqlite3_libsqlite3_select_as_list', {
     \   'id': self.attrs.id,
-    \   'query': a:args.query,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values':  a:args.bind_values,
     \})
 
     if !float2nr(ret.success)
@@ -56,7 +78,8 @@ endfunction
 function! s:driver.select_as_dict(args)
     let ret= s:libcall('vdbc_sqlite3_libsqlite3_select_as_dict', {
     \   'id': self.attrs.id,
-    \   'query': a:args.query,
+    \   'statement_id': a:args.statement_id,
+    \   'bind_values':  a:args.bind_values,
     \})
 
     if !float2nr(ret.success)
@@ -104,6 +127,10 @@ function! s:libcall(func, dict)
     endif
 
     return s:J.decode(libcall(s:libname, a:func, s:J.encode(a:dict)))
+endfunction
+
+function! vdbc#driver#sqlite3_libsqlite3#define()
+    return deepcopy(s:driver)
 endfunction
 
 let &cpo= s:save_cpo

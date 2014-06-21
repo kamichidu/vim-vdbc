@@ -28,27 +28,25 @@ let s:driver= vdbc#driver#pg#get()
 
 let s:driver.name= 'pg_libpq'
 
-function! vdbc#driver#pg_libpq#connect(config)
-    let driver= deepcopy(s:driver)
-
-    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+function! s:driver.connect(config)
+    let self.attrs= extend(self.attrs, deepcopy(a:config))
 
     let conninfo= {}
 
-    if has_key(driver.attrs, 'host')
-        let conninfo.host= driver.attrs.host
+    if has_key(self.attrs, 'host')
+        let conninfo.host= self.attrs.host
     endif
-    if has_key(driver.attrs, 'port')
-        let conninfo.port= driver.attrs.port
+    if has_key(self.attrs, 'port')
+        let conninfo.port= self.attrs.port
     endif
-    if has_key(driver.attrs, 'username')
-        let conninfo.user= driver.attrs.username
+    if has_key(self.attrs, 'username')
+        let conninfo.user= self.attrs.username
     endif
-    if has_key(driver.attrs, 'password')
-        let conninfo.password= driver.attrs.password
+    if has_key(self.attrs, 'password')
+        let conninfo.password= self.attrs.password
     endif
-    if has_key(driver.attrs, 'dbname')
-        let conninfo.dbname= driver.attrs.dbname
+    if has_key(self.attrs, 'dbname')
+        let conninfo.dbname= self.attrs.dbname
     endif
 
     let ret= s:libcall('vdbc_pg_libpq_connect', conninfo)
@@ -57,9 +55,7 @@ function! vdbc#driver#pg_libpq#connect(config)
         throw 'vdbc: ' . get(ret, 'message', 'unknown error')
     endif
 
-    let driver.attrs.id= ret.id
-
-    return driver
+    let self.attrs.id= ret.id
 endfunction
 
 function! s:driver.execute(args)
@@ -130,6 +126,10 @@ function! s:libcall(func, dict)
     endif
 
     return s:J.decode(libcall(s:libname, a:func, s:J.encode(a:dict)))
+endfunction
+
+function! vdbc#driver#pg_libpq#define()
+    return deepcopy(s:driver)
 endfunction
 
 let &cpo= s:save_cpo

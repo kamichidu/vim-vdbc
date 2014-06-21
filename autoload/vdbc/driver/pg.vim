@@ -34,33 +34,29 @@ let s:driver= {
 \   },
 \}
 
-function! vdbc#driver#pg#connect(config)
-    let driver= deepcopy(s:driver)
-
-    let driver.attrs= extend(driver.attrs, deepcopy(a:config))
+function! s:driver.connect(config)
+    let self.attrs= extend(self.attrs, deepcopy(a:config))
 
     let parts= ['psql']
 
-    if has_key(driver.attrs, 'host')
-        call add(parts, '--host ' . driver.attrs.host)
+    if has_key(self.attrs, 'host')
+        call add(parts, '--host ' . self.attrs.host)
     endif
-    if has_key(driver.attrs, 'port')
-        call add(parts, '--port ' . driver.attrs.port)
+    if has_key(self.attrs, 'port')
+        call add(parts, '--port ' . self.attrs.port)
     endif
-    if has_key(driver.attrs, 'username')
-        call add(parts, '--username ' . driver.attrs.username)
+    if has_key(self.attrs, 'username')
+        call add(parts, '--username ' . self.attrs.username)
     endif
-    if has_key(driver.attrs, 'dbname')
-        call add(parts, '--dbname ' . driver.attrs.dbname)
+    if has_key(self.attrs, 'dbname')
+        call add(parts, '--dbname ' . self.attrs.dbname)
     endif
 
     let psql_cmd= join(parts + ['--no-password', '--no-align', '--quiet'], ' ')
 
-    let driver.psql= vdbc#process#open(psql_cmd)
+    let self.psql= vdbc#process#open(psql_cmd)
 
-    call driver.execute({'query': '\encoding UTF-8'})
-
-    return driver
+    call self.execute({'query': '\encoding UTF-8'})
 endfunction
 
 function! s:driver.execute(args)
@@ -164,6 +160,10 @@ function! s:make_query(query)
 endfunction
 
 function! vdbc#driver#pg#get()
+    return deepcopy(s:driver)
+endfunction
+
+function! vdbc#driver#pg#define()
     return deepcopy(s:driver)
 endfunction
 

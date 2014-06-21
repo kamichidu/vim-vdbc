@@ -80,6 +80,19 @@ VDBC Object ~
 		params
 			parameters for prepared statement.
 
+		it is equivalent to:
+>
+		try
+			let stmt= vdbc.prepare('select * from table where column = ?')
+
+			call stmt.execute(['value'])
+		finally
+			if exists('stmt')
+				call stmt.finish()
+			endif
+		endtry
+<
+
 													   *vdbc.select_as_list()*
 	vdbc.select_as_list({query}, ...)
 		similar to |vdbc.execute()| except to return query output |List| of
@@ -263,6 +276,12 @@ all drivers must have some functions below:
 			sql statement will be prepared.
 
 		it returns an id value for execution.
+
+	driver.deallocate({args})
+		it takes a |Dictionary|.
+
+		statement_id	(required)
+			an id for prepared statement.
 
 	driver.execute({args})
 		executes a prepared statement, and no output.

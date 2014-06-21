@@ -23,10 +23,12 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let s:D= vdbc#Data_Dict()
+let s:S= vdbc#Data_String()
 
 let s:driver= {
 \   'name': 'pg',
 \   'psql':  {},
+\   'prepare_counter': 0,
 \   'attrs': {
 \       'host':     'localhost',
 \       'port':     5432,
@@ -56,12 +58,57 @@ function! s:driver.connect(config)
 
     let self.psql= vdbc#process#open(psql_cmd)
 
-    call self.execute({'query': '\encoding UTF-8'})
+    call s:eval(self.psql, {
+    \   'query':       '\encoding UTF-8',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
+endfunction
+
+function! s:driver.prepare(args)
+    let query= s:S.substitute_last(a:args.query, ';$', '')
+    let cnt= 0
+    while query =~# '?'
+        let cnt+= 1
+        let query= s:S.replace_first(query, '?', '$' . cnt)
+    endwhile
+
+    let name= printf('autogen_%08d', self.prepare_counter)
+    let self.prepare_counter+= 1
+
+    call s:eval(self.psql, {
+    \   'query': 'prepare ' . name . ' as (' . query . ');',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
+
+    return name
+endfunction
+
+function! s:driver.deallocate(args)
+    call s:eval(self.psql, {
+    \   'query': 'deallocate ' . a:args.statement_id . ';',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
 endfunction
 
 function! s:driver.execute(args)
+    let query_parts= ['execute', a:args.statement_id]
+
+    if !empty(a:args.bind_values)
+        let query_parts+= ['(']
+        let query_parts+= [join(map(a:args.bind_values, 'string(v:val)'), ',')]
+        let query_parts+= [')']
+    endif
+
+    let query_parts+= [';']
+
     call join(s:eval(self.psql, {
-    \   'query':       a:args.query,
+    \   'query':       join(query_parts, ' '),
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'on',
     \   'output':      0,
@@ -69,16 +116,36 @@ function! s:driver.execute(args)
 endfunction
 
 function! s:driver.select_as_list(args)
+    let query_parts= ['execute', a:args.statement_id]
+
+    if !empty(a:args.bind_values)
+        let query_parts+= ['(']
+        let query_parts+= [join(map(a:args.bind_values, 'string(v:val)'), ',')]
+        let query_parts+= [')']
+    endif
+
+    let query_parts+= [';']
+
     return s:eval(self.psql, {
-    \   'query':       a:args.query,
+    \   'query':       join(query_parts, ' '),
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'on',
     \})
 endfunction
 
 function! s:driver.select_as_dict(args)
+    let query_parts= ['execute', a:args.statement_id]
+
+    if !empty(a:args.bind_values)
+        let query_parts+= ['(']
+        let query_parts+= [join(map(a:args.bind_values, 'string(v:val)'), ',')]
+        let query_parts+= [')']
+    endif
+
+    let query_parts+= [';']
+
     let records= s:eval(self.psql, {
-    \   'query':       a:args.query,
+    \   'query':       join(query_parts, ' '),
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'off',
     \})

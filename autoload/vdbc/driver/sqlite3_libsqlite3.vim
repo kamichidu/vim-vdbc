@@ -3,7 +3,7 @@ set cpo&vim
 
 let s:J= vdbc#Web_JSON()
 
-let s:driver= vdbc#driver#sqlite3#get()
+let s:driver= vdbc#driver#sqlite3#define()
 
 let s:driver.name= 'sqlite3_libsqlite3'
 

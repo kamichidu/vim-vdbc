@@ -27,8 +27,6 @@
 #include <memory>
 #include <utility>
 #include <sstream>
-#include <stdint.h>
-#include <fstream>
 
 #ifdef _WIN32
 #  include <windows.h>

@@ -1,4 +1,4 @@
-vim-vdbc
+vim-vdbc [![Build Status](https://travis-ci.org/kamichidu/vim-vdbc.svg?branch=master)](https://travis-ci.org/kamichidu/vim-vdbc)
 ====================================================================================================
 database interface for vim.
 

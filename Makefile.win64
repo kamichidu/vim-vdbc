@@ -1,6 +1,11 @@
-CC=x86_64-w64-mingw32-g++
-CFLAGS=-std=c++0x -Wall -O2 --shared
-LDFLAGS=-lpq
+all: pg_libpq sqlite3_libsqlite3
 
 pg_libpq:
-	${CC} ${LDFLAGS} -o autoload/vdbc/driver/pg_libpq.dll ${CFLAGS} autoload/vdbc/driver/pg_libpq/pg_libpq.cpp
+	make -C autoload/vdbc/driver/pg_libpq/ -f Makefile.win64
+
+sqlite3_libsqlite3:
+	make -C autoload/vdbc/driver/sqlite3_libsqlite3/ -f Makefile.win64
+
+clean:
+	make -C autoload/vdbc/driver/pg_libpq/ -f Makefile.win64 clean
+	make -C autoload/vdbc/driver/sqlite3_libsqlite3/ -f Makefile.win64 clean

@@ -1,0 +1,17 @@
+language: ruby
+
+rvm:
+    - 2.0.0
+
+install:
+    - sudo apt-get install libpq-dev
+
+before_script:
+    - psql -c 'create database test_vdbc;' -U postgres
+    - psql -c 'create table mr_test (id integer, str varchar);' -U postgres -d test_vdbc
+    - echo 'create table mr_test (id integer, str varchar);
+      .q
+      ' | sqlite3 ./test_vdbc
+    - bundle install --path=.bundle/
+
+script: rake ci

@@ -1,6 +1,11 @@
-CC=clang++
-CFLAGS=-std=c++11 -Wall -O2 -fPIC --shared
-LDFLAGS=-lpq -ldl
+all: pg_libpq sqlite3_libsqlite3
 
 pg_libpq:
-	${CC} ${CFLAGS} -o autoload/vdbc/driver/pg_libpq.so autoload/vdbc/driver/pg_libpq/pg_libpq.cpp ${LDFLAGS}
+	make -C autoload/vdbc/driver/pg_libpq/
+
+sqlite3_libsqlite3:
+	make -C autoload/vdbc/driver/sqlite3_libsqlite3/
+
+clean:
+	make -C autoload/vdbc/driver/pg_libpq/ clean
+	make -C autoload/vdbc/driver/sqlite3_libsqlite3/ clean

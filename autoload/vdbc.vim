@@ -23,7 +23,7 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 " vital
-let s:V= vital#of('vital')
+let s:V= vital#of('vdbc')
 let s:L= s:V.import('Data.List')
 let s:D= s:V.import('Data.Dict')
 let s:S= s:V.import('Data.String')

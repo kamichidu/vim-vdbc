@@ -78,7 +78,7 @@ function! s:driver.prepare(args)
     let self.prepare_counter+= 1
 
     call s:eval(self.psql, {
-    \   'query': 'prepare ' . name . ' as (' . query . ');',
+    \   'query': 'prepare ' . name . ' as ' . query . ';',
     \   'encoding':    self.attrs.encoding,
     \   'tuples_only': 'on',
     \   'output':      0,
@@ -157,6 +157,33 @@ endfunction
 function! s:driver.disconnect()
     call self.psql.writeln('\q')
     call self.psql.waitpid()
+endfunction
+
+function! s:driver.begin()
+    call s:eval(self.psql, {
+    \   'query':       'begin',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
+endfunction
+
+function! s:driver.commit()
+    call s:eval(self.psql, {
+    \   'query':       'commit',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
+endfunction
+
+function! s:driver.rollback()
+    call s:eval(self.psql, {
+    \   'query':       'rollback',
+    \   'encoding':    self.attrs.encoding,
+    \   'tuples_only': 'on',
+    \   'output':      0,
+    \})
 endfunction
 
 function! s:driver.databases(args)

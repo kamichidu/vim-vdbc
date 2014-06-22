@@ -357,6 +357,54 @@ char const* const vdbc_pg_libpq_deallocate(char const* const a)
     return (r= json::value(retobj).serialize()).c_str();
 }
 
+char const* const vdbc_pg_libpq_direct_execute(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+
+    std::string const query= args["query"].get<std::string>();
+
+    std::shared_ptr<PGresult> const result(PQexec(conn.get(), query.c_str()), [](PGresult* p){
+        if(p)
+        {
+            PQclear(p);
+        }
+    });
+
+    switch(PQresultStatus(result.get()))
+    {
+        case PGRES_TUPLES_OK:
+        case PGRES_COMMAND_OK:
+            break;
+        default:
+            return (r= for_error(PQerrorMessage(conn.get()))).c_str();
+    }
+
+    json::object retobj;
+
+    retobj["success"]= json::value(1.);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
 char const* const vdbc_pg_libpq_execute(char const* const a)
 {
     static std::string r;

@@ -140,6 +140,39 @@ function! s:driver.disconnect()
     endif
 endfunction
 
+function! s:driver.begin()
+    let ret= s:libcall('vdbc_pg_libpq_direct_execute', {
+    \   'id': self.attrs.id,
+    \   'query': 'begin',
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+endfunction
+
+function! s:driver.commit()
+    let ret= s:libcall('vdbc_pg_libpq_direct_execute', {
+    \   'id': self.attrs.id,
+    \   'query': 'commit',
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+endfunction
+
+function! s:driver.rollback()
+    let ret= s:libcall('vdbc_pg_libpq_direct_execute', {
+    \   'id': self.attrs.id,
+    \   'query': 'rollback',
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+endfunction
+
 function! s:libcall(func, dict)
     if !exists('s:libname')
         if has('win32') || has('win64')

@@ -13,12 +13,11 @@ describe 'select, insert, update, delete statement'
         let connect_infos= [
         \   {'driver': 'pg',                 'dbname': 'test_vdbc', 'username': 'postgres'},
         \   {'driver': 'pg_libpq',           'dbname': 'test_vdbc', 'username': 'postgres'},
-        \   {'driver': 'sqlite3',            'dbname': ':memory:'},
-        \   {'driver': 'sqlite3_libsqlite3', 'dbname': ':memory:'},
+        \   {'driver': 'sqlite3',            'dbname': './test_vdbc'},
+        \   {'driver': 'sqlite3_libsqlite3', 'dbname': './test_vdbc'},
         \]
 
         for connect_info in connect_infos
-            echo 'XXXXXXXXXXXXXXXXXXXXXXXXX'
             try
                 let C= vdbc#connect(connect_info)
 

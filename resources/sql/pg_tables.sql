@@ -28,4 +28,8 @@ where
     nsp.nspname like ? and
     cls.relname like ? and
     cls.relkind ~ ?
+order by
+    "schema",
+    "type",
+    "name"
 ;

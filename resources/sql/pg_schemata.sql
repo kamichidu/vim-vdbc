@@ -6,4 +6,6 @@ from
     pg_namespace as nsp
 where
     nsp.nspname like ?
+order by
+    "name"
 ;

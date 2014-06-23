@@ -123,6 +123,7 @@ function! s:vdbc.begin()
     return vdbc#transaction#new(self.driver)
 endfunction
 
+" TODO: remove or change api
 function! s:vdbc.databases(...)
     call s:throw_if_unsupported(self.driver, 'databases')
 

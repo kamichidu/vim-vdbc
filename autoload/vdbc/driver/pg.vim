@@ -200,13 +200,58 @@ endfunction
 function! s:driver.schemata(args)
     let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_schemata.sql')), "\n")
 
-    return self.select_as_dict({'query': query})
+    try
+        let stmt_id= self.prepare({'query': query})
+
+        return self.select_as_dict({'statement_id': stmt_id, 'bind_values': [a:args.schema]})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
 endfunction
 
 function! s:driver.tables(args)
     let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_tables.sql')), "\n")
 
-    return self.select_as_dict({'query': query})
+    let relkinds= []
+    for type in a:args.types
+        if type ==# 'table'
+            let relkinds+= ['r']
+        elseif type ==# 'view'
+            let relkinds+= ['v']
+        endif
+    endfor
+
+    if !empty(relkinds)
+        let relkinds= ['^['] + relkinds + [']$']
+    else
+        let relkinds= ['^$']
+    endif
+
+    try
+        let stmt_id= self.prepare({'query': query})
+
+        return self.select_as_dict({'statement_id': stmt_id, 'bind_values': [a:args.schema, a:args.table, join(relkinds, '|')]})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
+endfunction
+
+function! s:driver.columns(args)
+    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_columns.sql')), "\n")
+
+    try
+        let stmt_id= self.prepare({'query': query})
+
+        return self.select_as_dict({'statement_id': stmt_id, 'bind_values': [a:args.schema, a:args.table, a:args.column]})
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
 endfunction
 
 function! s:eval(psql, args)

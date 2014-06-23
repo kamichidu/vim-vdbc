@@ -1,8 +1,17 @@
+-- $1 schema
+-- $2 table
+-- $3 relkind (posix regex)
 select
     null as "catalog",
     nsp.nspname as "schema",
     cls.relname as "name",
-    'table' as "type",
+    (
+        case cls.relkind
+            when 'r' then 'table'
+            when 'v' then 'view'
+            else          ''
+        end
+    ) as "type",
     rem.description as "remarks"
 from
     pg_class as cls
@@ -16,6 +25,7 @@ from
         cls.oid = rem.objoid and
         rem.objsubid = 0
 where
-    cls.relkind = 'r' and
-    nsp.nspname = 'public'
+    nsp.nspname like ? and
+    cls.relname like ? and
+    cls.relkind ~ ?
 ;

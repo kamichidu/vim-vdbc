@@ -1,0 +1,6 @@
+lib/
+.vim-flavor/
+.vim-test/
+*.lock
+*.db
+.bundle/

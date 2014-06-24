@@ -9,7 +9,7 @@ install:
 before_script:
     - psql -c 'create database test_vdbc;' -U postgres
     - psql -c 'create table mr_test (id integer, str varchar);' -U postgres -d test_vdbc
-    - echo 'create table mr_test (id integer, str varchar);' | sqlite3 -batch ./test_vdbc
+    - echo 'create table mr_test (id integer, str varchar);' | sqlite3 -batch ./test_vdbc.db
     - bundle install --path=.bundle/
 
 script: rake ci

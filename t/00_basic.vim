@@ -144,7 +144,7 @@ describe 'select, insert, update, delete statement'
         try
             let C= vdbc#connect({
             \   'driver':   'sqlite3',
-            \   'dbname':   './test_vdbc',
+            \   'dbname':   './test_vdbc.db',
             \})
 
             " mr_test (id integer, str varchar)
@@ -212,7 +212,7 @@ describe 'select, insert, update, delete statement'
         try
             let C= vdbc#connect({
             \   'driver':   'sqlite3_libsqlite3',
-            \   'dbname':   './test_vdbc',
+            \   'dbname':   './test_vdbc.db',
             \})
 
             " mr_test (id integer, str varchar)

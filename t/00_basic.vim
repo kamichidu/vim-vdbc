@@ -6,7 +6,6 @@ describe 'select, insert, update, delete statement'
     end
 
     after
-        unlet connect_infos
     end
 
     it 'basic usecase'

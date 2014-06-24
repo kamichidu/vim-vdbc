@@ -10,7 +10,7 @@ NeoBundle 'kamichidu/vim-vdbc', {
 \   'depends': ['Shougo/vimproc.vim'],
 \   'build': {
 \       'unix':    'make -f Makefile',
-\       'windows': 'make -f Makefile.win64',
+\       'windows': 'make -f Makefile.win64 pg_libpq',
 \   },
 \}
 ```
@@ -19,13 +19,10 @@ NeoBundle 'kamichidu/vim-vdbc', {
 How to Use
 ----------------------------------------------------------------------------------------------------
 ```vim:
+" driver is one of {'pg', 'pg_libpq', 'sqlite3', 'sqlite3_libsqlite3'}
 let conn= vdbc#connect({
-\   'driver':   'pg_libpq',
-\   'host':     'localhost',
-\   'port':     5432,
-\   'username': 'hogehoge',
-\   'password': 'password',
-\   'dbname':   'dbname',
+\   'driver':   'sqlite3_libsqlite3',
+\   'dbname':   ':memory:',
 \})
 
 echo conn.select_as_list('select * from table')

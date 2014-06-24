@@ -176,9 +176,9 @@ endfunction
 function! s:libcall(func, dict)
     if !exists('s:libname')
         if has('win32') || has('win64')
-            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.dll')
+            let s:libname= globpath(&runtimepath, 'lib/pg_libpq.dll')
         else
-            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/pg_libpq.so')
+            let s:libname= globpath(&runtimepath, 'lib/pg_libpq.so')
         endif
 
         let ret= s:J.decode(libcall(s:libname, 'vdbc_pg_libpq_initialize', s:libname))

@@ -1,7 +1,7 @@
 CXX=clang++
-CXXFLAGS=-std=c++11 -Wall -O2 -fPIC --shared
+CXXFLAGS=-std=c++11 -Wall -O2 -fPIC -shared
 LDFLAGS=-lsqlite3 -ldl
-TARGET=../sqlite3_libsqlite3.so
+TARGET=../../../../lib/sqlite3_libsqlite3.so
 SRC=sqlite3_libsqlite3.cpp
 INCDIR=
 LIBDIR=

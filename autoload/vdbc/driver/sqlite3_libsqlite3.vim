@@ -102,9 +102,9 @@ endfunction
 function! s:libcall(func, dict)
     if !exists('s:libname')
         if has('win32') || has('win64')
-            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/sqlite3_libsqlite3.dll')
+            let s:libname= globpath(&runtimepath, 'lib/sqlite3_libsqlite3.dll')
         else
-            let s:libname= globpath(&runtimepath, 'autoload/vdbc/driver/sqlite3_libsqlite3.so')
+            let s:libname= globpath(&runtimepath, 'lib/sqlite3_libsqlite3.so')
         endif
 
         let ret= s:J.decode(libcall(s:libname, 'vdbc_sqlite3_libsqlite3_initialize', s:libname))

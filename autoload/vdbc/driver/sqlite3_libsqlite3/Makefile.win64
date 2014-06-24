@@ -1,7 +1,7 @@
 CXX=x86_64-w64-mingw32-g++
-CXXFLAGS=-std=c++0x -Wall -O2 --shared
+CXXFLAGS=-std=c++0x -Wall -O2 -shared
 SRC=sqlite3_libsqlite3.cpp
-TARGET=../sqlite3_libsqlite3.dll
+TARGET=../../../../lib/sqlite3_libsqlite3.dll
 LDFLAGS=-lsqlite3
 INCDIR=
 LIBDIR=

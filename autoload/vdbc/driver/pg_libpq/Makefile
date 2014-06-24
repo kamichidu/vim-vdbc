@@ -1,7 +1,7 @@
 CXX=clang++
-CXXFLAGS=-std=c++11 -Wall -O2 -fPIC --shared
+CXXFLAGS=-std=c++11 -Wall -O2 -fPIC -shared
 LDFLAGS=-lpq -ldl
-TARGET=../pg_libpq.so
+TARGET=../../../../lib/pg_libpq.so
 SRC=pg_libpq.cpp
 INCDIR=
 LIBDIR=

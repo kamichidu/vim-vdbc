@@ -1,7 +1,7 @@
 CXX=x86_64-w64-mingw32-g++
-CXXFLAGS=-std=c++0x -Wall -O2 --shared
+CXXFLAGS=-std=c++0x -Wall -O2 -shared
 SRC=pg_libpq.cpp
-TARGET=../pg_libpq.dll
+TARGET=../../../../lib/pg_libpq.dll
 LDFLAGS=-lpq
 INCDIR=
 LIBDIR=

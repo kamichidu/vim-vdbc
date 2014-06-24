@@ -61,6 +61,11 @@ function! s:driver.select_as_dict(args)
     \   'mode':  'tabs',
     \   'headers': 'on',
     \})
+
+    if empty(records)
+        return []
+    endif
+
     let labels= get(a:args, 'keys', records[0])
 
     return map(records[1 : -1], 's:D.make(labels, v:val)')

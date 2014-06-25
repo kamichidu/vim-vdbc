@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 25-Jun-2014.
+Last Change: 26-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -76,7 +76,8 @@ Functions ~
 		connect to database using {dsn}. {dsn} is |String| type and its format
 		is (written in ebnf form):
 
-			dsn = driver , ":" , option and value , {";" , option and value} ;
+			dsn = "vdbc" , ":" , driver , ":" , option and value ,
+			          {";" , option and value} ;
 
 			option and value = option , "=" , value ;
 

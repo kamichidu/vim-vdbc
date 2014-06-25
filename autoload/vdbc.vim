@@ -261,6 +261,9 @@ function! vdbc#connect(config)
     if !has_key(config, 'driver')
         throw "vdbc: `driver' attribute is required."
     endif
+    if !has_key(config, 'dbname')
+        throw "vdbc: `dbname' attribute is required."
+    endif
 
     let obj= deepcopy(s:vdbc)
 
@@ -270,6 +273,25 @@ function! vdbc#connect(config)
     call obj.driver.connect(config)
 
     return obj
+endfunction
+
+function! vdbc#connect_by_dsn(dsn)
+    if a:dsn !~# '\C^vdbc:'
+        throw 'vdbc: illegal dsn format.'
+    endif
+
+    let [_, driver, options]= split(a:dsn, '\\\@<!:', 1)
+
+    let config= {
+    \   'driver': driver,
+    \}
+    for option in split(options, '\\\@<!;')
+        let [key, value]= split(option, '\\\@<!=', 1)
+
+        let config[key]= value
+    endfor
+
+    return vdbc#connect(config)
 endfunction
 
 function! s:throw_if_unsupported(driver, fname)

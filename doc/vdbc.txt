@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 22-Jun-2014.
+Last Change: 25-Jun-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -44,23 +44,46 @@ Functions ~
 		connect to database. this function returns vdbc object. it takes
 		|Dictionary| to connect database. keys are:
 
+		driver		(required)
+			the driver name which will be used. it is |String| type.
+
 		dbname		(required)
-			|String| type.
+			the database name. it is |String| type.
 
 		host		(optional)
-			|String| type.
+			the host name or ip address. it is |String| type.
+			(default: depends on driver)
 
 		port		(optional)
-			|Number| type.
+			the port number. it is |Number| type.
+			(default: depends on driver)
 
 		username	(optional)
-			|String| type.
+			the user name. it is |String| type.
+			(default: depends on driver)
 
 		password	(optional)
+			the password for user which will connect a database. it is
 			|String| type.
+			(default: depends on driver)
 
 		encoding	(optional)
-			|String| type.
+			the database encoding. it is |String| type.
+			(default: depends on driver)
+
+													   *vdbc#connect_by_dsn()*
+	vdbc#connect_by_dsn({dsn})
+		connect to database using {dsn}. {dsn} is |String| type and its format
+		is (written in ebnf form):
+
+			dsn = driver , ":" , option and value , {";" , option and value} ;
+
+			option and value = option , "=" , value ;
+
+		for example:
+>
+			vdbc#connect_by_dsn('sqlite3_libsqlite3:dbname=./dbfile')
+<
 
 VDBC Object ~
 														   *vdbc.disconnect()*
@@ -69,12 +92,15 @@ VDBC Object ~
 
 															  *vdbc.prepare()*
 	vdbc.prepare({query})
-		it returns Statement Handle Object for later execution.
+		it returns Statement Handle Object for later execution. it will be
+		used for "select", "insert", "delete" or other statement which can
+		accept placeholders.
 		for more details, see Statement Handle Object section.
 
 															  *vdbc.execute()*
 	vdbc.execute({query}, ...)
-		execute {query} without query output.
+		execute {query} without query output. it will be used for non-select
+		statement.
 		it can takes |Dictionary| for 2nd argument.
 
 		params
@@ -96,12 +122,12 @@ VDBC Object ~
 													   *vdbc.select_as_list()*
 	vdbc.select_as_list({query}, ...)
 		similar to |vdbc.execute()| except to return query output |List| of
-		|List|.
+		|List|. it will be used for select statement.
 
 													   *vdbc.select_as_dict()*
 	vdbc.select_as_dict({query}, ...)
 		similar to |vdbc.execute()| except to return query output |List| of
-		|Dictionary|.
+		|Dictionary|. it will be used for select statement.
 
 															    *vdbc.begin()*
 	vdbc.begin()
@@ -186,16 +212,29 @@ VDBC Object ~
 	vdbc.sequences(...)
 		NOTE: experimental
 
+												*vdbc-statement-handle-object*
 Statement Handle Object ~
 
-	stmt.execute()
+	stmt.execute(...)
+		execute this statement without any output. this can be used for
+		non-select statement.
+		it can take a |List| that will be binded for this statement.
 
-	stmt.select_as_list()
+	stmt.select_as_list(...)
+		execute this statement with output as |List| of |List|. this can be
+		used for select statement.
+		it can take a |List| that will be binded for this statement.
 
-	stmt.select_as_dict()
+	stmt.select_as_dict(...)
+		execute this statement with output as |List| of |Dictionary|. this can
+		be used for select statement.
+		it can take a |List| that will be binded for this statement.
 
 	stmt.finish()
+		release related resources for this statement. after calling this
+		function, you can't call any functions for this object.
 
+													 *vdbc-transaction-object*
 Transaction Object ~
 
 	tx.commit()
@@ -204,6 +243,7 @@ Transaction Object ~
 
 	tx.is_active()
 
+													  *vdbc-table-info-object*
 Table Info Object ~
 
 	this has some attributes below.
@@ -225,6 +265,7 @@ Table Info Object ~
 	remarks
 		table description. in other words, table comment.
 
+													 *vdbc-column-info-object*
 Column Info Object ~
 
 	this has some attributes below.
@@ -343,7 +384,36 @@ and optional functions are following:
 												*vdbc-driver-standard-drivers*
 Standard Drivers ~
 
-TODO
+	pg
+		the PostgreSQL driver using psql command. if you want to use this
+		driver, you have to install a psql command.
+
+		dependencies:
+			TODO
+
+	pg_libpq
+		the PostgreSQL driver using libpq c/c++ interface. if you want to use
+		this driver, you have to build a dynamic library before use this.
+
+		dependencies:
+			TODO
+
+	sqlite3
+		the SQLite ver.3 driver using sqlite3 command. if you want to use this
+		driver, you have to install a sqlite3 command.
+
+		dependencies:
+			TODO
+
+	sqlite3_libsqlite3
+		the SQLite ver.3 driver using SQLite c/c++ interface. this driver
+		requires its dynamic library. we built a dynamic library for
+		MS-Windows 64bit. so you can use this driver without building. if you
+		use a *nix like system, please build a dynamic library before use
+		this.
+
+		dependencies:
+			TODO
 
 ==============================================================================
 vim:tw=78:ts=4:ft=help:norl:fen:noet:

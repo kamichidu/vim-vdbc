@@ -24,6 +24,7 @@ set cpo&vim
 
 let s:D= vdbc#Data_Dict()
 let s:S= vdbc#Data_String()
+let s:M= vdbc#Vim_Message()
 
 let s:driver= {
 \   'name': 'pg',
@@ -198,7 +199,14 @@ function! s:driver.databases(args)
 endfunction
 
 function! s:driver.schemata(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_schemata.sql')), "\n")
+    let response= vdbc#resource#content('sql/pg_schemata.sql')
+
+    if !response.success
+        call s:M.warn('vdbc: pg: unexpected error.')
+        return []
+    endif
+
+    let query= response.content
 
     try
         let stmt_id= self.prepare({'query': query})
@@ -212,7 +220,14 @@ function! s:driver.schemata(args)
 endfunction
 
 function! s:driver.tables(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_tables.sql')), "\n")
+    let response= vdbc#resource#content('sql/pg_tables.sql')
+
+    if !response.success
+        call s:M.warn('vdbc: pg: unexpected error.')
+        return []
+    endif
+
+    let query= response.content
 
     let relkinds= []
     for type in a:args.types
@@ -241,7 +256,14 @@ function! s:driver.tables(args)
 endfunction
 
 function! s:driver.columns(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/pg_columns.sql')), "\n")
+    let response= vdbc#resource#content('sql/pg_columns.sql')
+
+    if !response.success
+        call s:M.warn('vdbc: pg: unexpected error.')
+        return []
+    endif
+
+    let query= response.content
 
     try
         let stmt_id= self.prepare({'query': query})

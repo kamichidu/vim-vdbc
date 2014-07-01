@@ -301,11 +301,28 @@ function! s:throw_if_unsupported(driver, fname)
 endfunction
 
 function! s:find_driver_by_name(list, name)
-    for driver in a:list
-        if driver.name ==# a:name
-            return driver
+    " name ends with `*', then we will find a driver by prefix and priority
+    if a:name =~# '*$'
+        let prefix= '\C^' . substitute(a:name, '*$', '', '')
+
+        for driver in a:list
+            if driver.name =~# prefix
+                if !exists('found') || driver.priority < found.priority
+                    let found= driver
+                endif
+            endif
+        endfor
+
+        if exists('found')
+            return found
         endif
-    endfor
+    else
+        for driver in a:list
+            if driver.name ==# a:name
+                return driver
+            endif
+        endfor
+    endif
 
     let driver_names= map(copy(a:list), 'v:val.name')
     throw printf("vdbc: driver `%s' does not exists. availables are {%s}", a:name, join(driver_names, ', '))

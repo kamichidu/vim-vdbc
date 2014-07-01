@@ -6,6 +6,7 @@ let s:S= vdbc#Data_String()
 
 let s:driver= {
 \   'name': 'sqlite3',
+\   'priority': 99,
 \   'sqlite3':  {},
 \   'prepare_counter': 0,
 \   'prepare_queries': {},

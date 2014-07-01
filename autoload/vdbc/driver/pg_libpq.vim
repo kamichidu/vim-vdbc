@@ -28,6 +28,7 @@ let s:S= vdbc#Data_String()
 let s:driver= vdbc#driver#pg#define()
 
 let s:driver.name= 'pg_libpq'
+let s:driver.priority= 50
 
 function! s:driver.connect(config)
     let self.attrs= extend(self.attrs, deepcopy(a:config))

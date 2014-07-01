@@ -28,6 +28,7 @@ let s:M= vdbc#Vim_Message()
 
 let s:driver= {
 \   'name': 'pg',
+\   'priority': 99,
 \   'psql':  {},
 \   'prepare_counter': 0,
 \   'attrs': {

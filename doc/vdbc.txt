@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 26-Jun-2014.
+Last Change: 01-Jul-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -305,7 +305,19 @@ the driver is a implementation of the vdbc interface.
 												   *vdbc-driver-specification*
 Specification ~
 
-all drivers must have some functions below:
+all drivers must have some attributes and functions below:
+
+	vdbc.name
+		it is a |String| type driver name. it will be used as driver name by
+		|vdbc#connect()| and |vdbc#connect_by_dsn()|.
+
+	vdbc.priority
+		it is a |Number| type. it will be used by |vdbc#connect()| and
+		|vdbc#connect_by_dsn()|.
+		if there are some prefix matched drivers, we will choose a driver
+		which has minimum priority number.
+
+		priority order: (higher priority) -inf < 0 < inf (lower priority)
 
 	vdbc#driver#{driver}#define()
 		returns a |Dictionary| of driver.

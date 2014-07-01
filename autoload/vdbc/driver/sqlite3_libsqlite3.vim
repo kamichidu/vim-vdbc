@@ -6,6 +6,7 @@ let s:J= vdbc#Web_JSON()
 let s:driver= vdbc#driver#sqlite3#define()
 
 let s:driver.name= 'sqlite3_libsqlite3'
+let s:driver.priority= 50
 
 function! s:driver.connect(config)
     let self.attrs= extend(self.attrs, deepcopy(a:config))

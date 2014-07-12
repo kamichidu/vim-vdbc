@@ -1,15 +1,23 @@
+CC=clang
+CCFLAGS=-Wall -O2 -fPIC
 CXX=clang++
-CXXFLAGS=-std=c++11 -Wall -O2 -fPIC -shared
-LDFLAGS=-lsqlite3 -ldl
+CXXFLAGS=-std=c++11 -Wall -O2 -fPIC
+LDFLAGS=-ldl
 TARGET=../../../../lib/sqlite3_libsqlite3.so
-SRC=sqlite3_libsqlite3.cpp
-INCDIR=
+OBJS=sqlite3_libsqlite3.o sqlite3.o
+INCDIR=-I.
 LIBDIR=
 
 all: sqlite3_libsqlite3
 
-sqlite3_libsqlite3:
-	${CXX} ${CXXFLAGS} ${INCDIR} -o ${TARGET} ${SRC} ${LIBDIR} ${LDFLAGS}
+sqlite3_libsqlite3: ${OBJS}
+	${CXX} -fPIC -shared -o ${TARGET} ${OBJS} ${LIBDIR} ${LDFLAGS}
+
+.c.o:
+	${CC} ${CCFLAGS} ${INCDIR} -o $(<:%.c=%.o) -c $<
+
+.cpp.o:
+	${CXX} ${CXXFLAGS} ${INCDIR} -o $(<:%.cpp=%.o) -c $<
 
 clean:
-	${RM} ${TARGET}
+	${RM} ${TARGET} ${OBJS}

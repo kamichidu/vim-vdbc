@@ -4,3 +4,4 @@ lib/
 *.lock
 *.db
 .bundle/
+*.o

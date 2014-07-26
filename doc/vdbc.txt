@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 01-Jul-2014.
+Last Change: 27-Jul-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -402,21 +402,24 @@ Standard Drivers ~
 		driver, you have to install a psql command.
 
 		dependencies:
-			TODO
+			postgresql-libs       (On Arch Linux)
+			postgresql-client-9.3 (On Ubuntu 14.x)
 
 	pg_libpq
 		the PostgreSQL driver using libpq c/c++ interface. if you want to use
 		this driver, you have to build a dynamic library before use this.
 
 		dependencies:
-			TODO
+			postgresql-libs   (On Arch Linux)
+			libpq5, libpq-dev (On Ubuntu 14.x)
 
 	sqlite3
 		the SQLite ver.3 driver using sqlite3 command. if you want to use this
 		driver, you have to install a sqlite3 command.
 
 		dependencies:
-			TODO
+			sqlite  (On Arch Linux)
+			sqlite3 (On Ubuntu 14.x)
 
 	sqlite3_libsqlite3
 		the SQLite ver.3 driver using SQLite c/c++ interface. this driver
@@ -426,7 +429,7 @@ Standard Drivers ~
 		this.
 
 		dependencies:
-			TODO
+			(nothing)
 
 ==============================================================================
 vim:tw=78:ts=4:ft=help:norl:fen:noet:

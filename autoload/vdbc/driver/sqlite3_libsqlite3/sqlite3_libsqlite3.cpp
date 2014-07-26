@@ -551,14 +551,20 @@ char const* const vdbc_sqlite3_libsqlite3_select_as_dict(char const* const a)
             case SQLITE_OK:
                 break;
             default:
+                std::cout << "step failed result=" << result << std::endl;
                 return (r= for_error(sqlite3_errmsg(sqlite3_db_handle(stmt.get())))).c_str();
         }
 
         json::object fields;
         for(int col= 0; col < nfields; ++col)
         {
-            std::string const label(sqlite3_column_name(stmt.get(), col));
-            std::string const value(reinterpret_cast<char const*>(sqlite3_column_text(stmt.get(), col)));
+            static unsigned char const* const nullvalue= reinterpret_cast<unsigned char const*>("");
+
+            char const* const column_name= sqlite3_column_name(stmt.get(), col);
+            unsigned char const* const column_text= sqlite3_column_text(stmt.get(), col);
+
+            std::string const label(column_name ? column_name : "");
+            std::string const value(reinterpret_cast<char const*>(column_text ? column_text : nullvalue));
 
             fields[label]= json::value(value);
         }

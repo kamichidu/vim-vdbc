@@ -94,112 +94,13 @@ See `:help vdbc-contents` for more details.
 
 Dependencies <a name="dependencies"></a>
 ----------------------------------------------------------------------------------------------------
-<table>
-    <thead>
-        <tr>
-            <th>Driver</th>
-            <th>OS</th>
-            <th>Dependency</th>
-            <th>make command example</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td rowspan="2">
-                pg
-            </td>
-            <td>
-                Ubuntu 14.x
-            </td>
-            <td>
-                postgresql-client-9.3
-            </td>
-            <td>
-                -
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Arch Linux
-            </td>
-            <td>
-                postgresql-libs
-            </td>
-            <td>
-                -
-            </td>
-        </tr>
-
-        <tr>
-            <td rowspan="3">
-                pg_libpq
-            </td>
-            <td rowspan="2">
-                Ubuntu 14.x
-            </td>
-            <td>
-                libpq5
-            </td>
-            <td rowspan="2">
-                make INCDIR="-I/usr/include/postgresql/" pg_libpq
-            </td>
-        </tr>
-        <tr>
-            <td>
-                libpq-dev
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Arch Linux
-            </td>
-            <td>
-                postgresql-libs
-            </td>
-            <td>
-                make pg_libpq
-            </td>
-        </tr>
-
-        <tr>
-            <td rowspan="2">
-                sqlite3
-            </td>
-            <td>
-                Ubuntu 14.x
-            </td>
-            <td>
-                sqlite3
-            </td>
-            <td>
-                -
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Arch Linux
-            </td>
-            <td>
-                sqlite
-            </td>
-            <td>
-                -
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-                sqlite3_libsqlite3
-            </td>
-            <td>
-                -
-            </td>
-            <td>
-                -
-            </td>
-            <td>
-                make sqlite3_libsqlite3
-            </td>
-        </tr>
-    </tbody>
-</table>
+Driver              | OS          | Dependency            | make command example
+------------------- | ----------- | --------------------- | --------------------------------------------------
+pg                  | Ubuntu 14.x | postgresql-client-9.3 | -
+                    | Arch Linux  | postgresql-libs       | -
+pg\_libpq           | Ubuntu 14.x | libpq5                | make INCDIR="-I/usr/include/postgresql/" pg\_libpq
+                    |             | libpq-dev             |
+                    | Arch Linux  | postgresql-libs       | make pg_libpq
+sqlite3             | Ubuntu 14.x | sqlite3               | -
+                    | Arch Linux  | sqlite                | -
+sqlite3\_libsqlite3 | -           | -                     | make sqlite3\_libsqlite3

@@ -307,11 +307,11 @@ Specification ~
 
 all drivers must have some attributes and functions below:
 
-	vdbc.name
+	driver.name
 		it is a |String| type driver name. it will be used as driver name by
 		|vdbc#connect()| and |vdbc#connect_by_dsn()|.
 
-	vdbc.priority
+	driver.priority
 		it is a |Number| type. it will be used by |vdbc#connect()| and
 		|vdbc#connect_by_dsn()|.
 		if there are some prefix matched drivers, we will choose a driver

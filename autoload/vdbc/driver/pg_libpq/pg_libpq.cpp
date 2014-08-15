@@ -254,6 +254,48 @@ char const* const vdbc_pg_libpq_disconnect(char const* const a)
     }
 }
 
+char const* const vdbc_pg_libpq_connection_status(char const* const a)
+{
+    static std::string r;
+
+    json::object args;
+    {
+        std::pair<json::object, std::string> const parsed= parse_json(a);
+
+        if(!parsed.second.empty())
+        {
+            return (r= for_error(parsed.second)).c_str();
+        }
+
+        args= parsed.first;
+    }
+
+    int const id= static_cast<int>(args["id"].get<double>());
+    if(connections.find(id) == connections.end())
+    {
+        return (r= for_error("unknown id")).c_str();
+    }
+    std::shared_ptr<PGconn> const conn= connections.at(id);
+
+    json::object retobj;
+
+    switch(PQstatus(conn.get()))
+    {
+        case CONNECTION_OK:
+            retobj["status"]= json::value(std::string("active"));
+            break;
+        case CONNECTION_BAD:
+            retobj["status"]= json::value(std::string("inactive"));
+            break;
+        default:
+            return (r= for_error("Unknown connection status detected.")).c_str();
+    }
+
+    retobj["success"]= json::value(1.);
+
+    return (r= json::value(retobj).serialize()).c_str();
+}
+
 char const* const vdbc_pg_libpq_prepare(char const* const a)
 {
     static std::string r;

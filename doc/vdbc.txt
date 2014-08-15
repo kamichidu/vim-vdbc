@@ -2,7 +2,7 @@
 
 Version: 0.0.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 27-Jul-2014.
+Last Change: 16-Aug-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -67,6 +67,9 @@ Functions ~
 			|String| type.
 			(default: depends on driver)
 
+			NOTE: the password support is depends on driver. pg driver is not
+			supported, but pg_libpq driver is supported.
+
 		encoding	(optional)
 			the database encoding. it is |String| type.
 			(default: depends on driver)
@@ -89,7 +92,13 @@ Functions ~
 VDBC Object ~
 														   *vdbc.disconnect()*
 	vdbc.disconnect()
-		disconnect from database.
+		disconnect from database. if you forgot to disconnect the database,
+		vdbc will automatically disconnect from.
+
+													*vdbc.connection_status()*
+	vdbc.connection_status()
+		it returns a |String| describing current connection status. possible
+		values are {"active", "inactive"}.
 
 															  *vdbc.prepare()*
 	vdbc.prepare({query})

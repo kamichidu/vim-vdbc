@@ -10,6 +10,8 @@ describe 'select, insert, update, delete statement'
             \   'username': 'postgres',
             \})
 
+            Expect C.connection_status() ==# 'active'
+
             " mr_test (id integer, str varchar)
             call C.execute('delete from mr_test')
 
@@ -79,6 +81,8 @@ describe 'select, insert, update, delete statement'
             \   'username': 'postgres',
             \})
 
+            Expect C.connection_status() ==# 'active'
+
             " mr_test (id integer, str varchar)
             call C.execute('delete from mr_test')
 
@@ -147,6 +151,8 @@ describe 'select, insert, update, delete statement'
             \   'dbname':   './test_vdbc.db',
             \})
 
+            Expect C.connection_status() ==# 'active'
+
             " mr_test (id integer, str varchar)
             call C.execute('delete from mr_test')
 
@@ -214,6 +220,8 @@ describe 'select, insert, update, delete statement'
             \   'driver':   'sqlite3_libsqlite3',
             \   'dbname':   './test_vdbc.db',
             \})
+
+            Expect C.connection_status() ==# 'active'
 
             " mr_test (id integer, str varchar)
             call C.execute('delete from mr_test')

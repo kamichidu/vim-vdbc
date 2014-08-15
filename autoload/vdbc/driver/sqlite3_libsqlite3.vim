@@ -100,6 +100,11 @@ function! s:driver.disconnect()
     endif
 endfunction
 
+function! s:driver.connection_status()
+    " XXX: maybe... always active
+    return 'active'
+endfunction
+
 function! s:libcall(func, dict)
     if !exists('s:libname')
         if has('win32') || has('win64')

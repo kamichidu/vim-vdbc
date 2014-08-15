@@ -161,6 +161,11 @@ function! s:driver.disconnect()
     call self.psql.waitpid()
 endfunction
 
+function! s:driver.connection_status()
+    " XXX: maybe... always active
+    return 'active'
+endfunction
+
 function! s:driver.begin()
     call s:eval(self.psql, {
     \   'query':       'begin',

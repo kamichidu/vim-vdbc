@@ -114,6 +114,10 @@ function! s:vdbc.disconnect()
     call self.driver.disconnect()
 endfunction
 
+function! s:vdbc.connection_status()
+    return self.driver.connection_status()
+endfunction
+
 " optional methods
 function! s:vdbc.begin()
     call s:throw_if_unsupported(self.driver, 'begin')

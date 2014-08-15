@@ -77,6 +77,11 @@ function! s:driver.disconnect()
     call self.sqlite3.waitpid()
 endfunction
 
+function! s:driver.connection_status()
+    " XXX: maybe... always active
+    return 'active'
+endfunction
+
 function! s:driver.begin()
     try
         let stmt_id= self.prepare({'query': 'begin transaction'})

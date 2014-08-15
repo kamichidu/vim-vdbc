@@ -141,6 +141,18 @@ function! s:driver.disconnect()
     endif
 endfunction
 
+function! s:driver.connection_status()
+    let ret= s:libcall('vdbc_pg_libpq_connection_status', {
+    \   'id': self.attrs.id,
+    \})
+
+    if !float2nr(ret.success)
+        throw 'vdbc: ' . get(ret, 'message', 'unknown error')
+    endif
+
+    return ret.status
+endfunction
+
 function! s:driver.begin()
     let ret= s:libcall('vdbc_pg_libpq_direct_execute', {
     \   'id': self.attrs.id,

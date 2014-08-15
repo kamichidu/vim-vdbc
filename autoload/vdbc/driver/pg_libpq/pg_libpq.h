@@ -131,6 +131,12 @@ extern "C"
      * \return a string that json object was serialized.
      */
     VDBC_API char const* const __cdecl vdbc_pg_libpq_disconnect(char const* const json);
+
+    /**
+     * \param json [in] a string that json object was serialized.
+     * \return a string that json object was serialized.
+     */
+    VDBC_API char const* const __cdecl vdbc_pg_libpq_connection_status(char const* const json);
 }
 
 #endif // VDBC_DRIVER_PG_LIBPQ_H_

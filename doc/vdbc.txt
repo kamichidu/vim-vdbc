@@ -1,6 +1,6 @@
 *vim-vdbc.txt*
 
-Version: 0.0.0
+Version: 0.0.1
 Author:  kamichidu <c.kamunagi@gmail.com>
 Last Change: 16-Aug-2014.
 License: The MIT License (MIT)

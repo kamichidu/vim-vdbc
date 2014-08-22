@@ -269,6 +269,10 @@ function! vdbc#connect(config)
         throw "vdbc: `dbname' attribute is required."
     endif
 
+    if has_key(config, 'port') && type(config.port) == type('')
+        let config.port= str2nr(config.port)
+    endif
+
     let obj= deepcopy(s:vdbc)
 
     let obj.driver= deepcopy(s:find_driver_by_name(s:available_drivers, config.driver))

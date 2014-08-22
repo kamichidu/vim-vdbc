@@ -118,27 +118,60 @@ function! s:driver.rollback()
     endtry
 endfunction
 
-function! s:driver.databases(args)
-    let records= s:eval(self.sqlite3, {
-    \   'query':       '.databases',
-    \   'encoding':    self.attrs.encoding,
-    \   'tuples_only': 'on',
-    \})
-    let labels= ['name', 'name', 'file']
-
-    return map(records, 's:D.make(labels, v:val)')
-endfunction
-
-function! s:driver.schemas(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/sqlite3_schemas.sql')), "\n")
-
-    return self.select_as_dict({'query': query})
-endfunction
-
 function! s:driver.tables(args)
-    let query= join(readfile(globpath(&runtimepath, 'resources/sql/sqlite3_tables.sql')), "\n")
+    try
+        let stmt_id= self.prepare({'query': 'select name, type from sqlite_master'})
 
-    return self.select_as_dict({'query': query})
+        let tables= map(self.select_as_dict({'statement_id': stmt_id, 'bind_values': []}), "
+        \   {
+        \       'catalog': '',
+        \       'schema':  '',
+        \       'name':    v:val.name,
+        \       'type':    v:val.type,
+        \       'remarks': '',
+        \   }
+        \")
+    finally
+        if exists('stmt_id')
+            call self.deallocate({'statement_id': stmt_id})
+        endif
+    endtry
+
+    call filter(tables, 'v:val.catalog =~# ''\c^' . substitute(a:args.catalog, '%', '.*', 'g') . '$''')
+    call filter(tables, 'v:val.schema  =~# ''\c^' . substitute(a:args.schema, '%', '.*', 'g') . '$''')
+    call filter(tables, 'v:val.name    =~# ''\c^' . substitute(a:args.table, '%', '.*', 'g') . '$''')
+    call filter(tables, 'v:val.type    =~# ''\c^\%(' . join(a:args.types, '\|') . '\)$''')
+    return tables
+endfunction
+
+function! s:driver.columns(args)
+    let tables= self.tables(extend({'types': ['table', 'view']}, a:args))
+    let columns= []
+
+    for table in tables
+        try
+            let stmt_id= self.prepare({'query': printf('pragma table_info(%s)', table.name)})
+
+            let columns+= map(self.select_as_dict({'statement_id': stmt_id, 'bind_values': []}), "
+            \   {
+            \       'catalog':          table.catalog,
+            \       'schema':           table.schema,
+            \       'table':            table.name,
+            \       'name':             v:val.name,
+            \       'type_name':        v:val.type,
+            \       'ordinal_position': v:val.cid,
+            \       'nullable':         !v:val.notnull,
+            \       'remarks':          '',
+            \   }
+            \")
+        finally
+            if exists('stmt_id')
+                call self.deallocate({'statement_id': stmt_id})
+            endif
+        endtry
+    endfor
+
+    return filter(columns, 'v:val.name =~# ''\c^' . substitute(a:args.column, '%', '.*', 'g') . '$''')
 endfunction
 
 function! s:eval(sqlite3, args)

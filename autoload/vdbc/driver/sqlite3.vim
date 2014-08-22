@@ -160,7 +160,7 @@ function! s:driver.columns(args)
             \       'name':             v:val.name,
             \       'type_name':        v:val.type,
             \       'ordinal_position': v:val.cid,
-            \       'nullable':         !v:val.notnull,
+            \       'nullable':         !v:val.notnull ? 't' : 'f',
             \       'remarks':          '',
             \   }
             \")

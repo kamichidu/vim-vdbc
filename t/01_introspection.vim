@@ -1,37 +1,18 @@
 set runtimepath+=./.vim-test/*
 filetype plugin indent on
 
-describe ''
-describe '{pg} driver can give information for meta data'
-    before
-        let g:C= vdbc#connect({
-        \   'driver':   'pg',
-        \   'dbname':   'test_vdbc',
-        \   'username': 'postgres',
-        \})
-    end
-
-    after
-        call g:C.disconnect()
-    end
-
-    it 'can NOT get catalog information by catalogs()'
+describe 'The Introspection API'
+    function! s:test_for_postgres()
         Expect expr { g:C.catalogs() } to_throw 'not supported'
-    end
 
-    it 'can get schema information by schemata()'
         Expect g:C.schemata({'schema': 'public'}) ==# [
         \   {'catalog': '', 'name': 'public'},
         \]
-    end
 
-    it 'can get table or view information by tables()'
         Expect g:C.tables({'schema': 'public'}) ==# [
         \   {'catalog': '', 'schema': 'public', 'name': 'mr_test', 'type': 'table', 'remarks': ''},
         \]
-    end
 
-    it 'can get column information by columns()'
         Expect g:C.columns({'schema': 'public'}) ==# [
         \   {'catalog': '', 'schema': 'public', 'table': 'mr_test', 'name': 'tableoid', 'type_name': 'oid',     'ordinal_position': '-7', 'nullable': 'f', 'remarks': ''},
         \   {'catalog': '', 'schema': 'public', 'table': 'mr_test', 'name': 'cmax',     'type_name': 'cid',     'ordinal_position': '-6', 'nullable': 'f', 'remarks': ''},
@@ -42,5 +23,95 @@ describe '{pg} driver can give information for meta data'
         \   {'catalog': '', 'schema': 'public', 'table': 'mr_test', 'name': 'id',       'type_name': 'int4',    'ordinal_position': '1',  'nullable': 't', 'remarks': ''},
         \   {'catalog': '', 'schema': 'public', 'table': 'mr_test', 'name': 'str',      'type_name': 'varchar', 'ordinal_position': '2',  'nullable': 't', 'remarks': ''},
         \]
+    endfunction
+
+    function! s:test_for_sqlite3()
+        Expect expr { g:C.catalogs() } to_throw 'not supported'
+        Expect expr { g:C.schemata() } to_throw 'not supported'
+
+        Expect g:C.tables() ==# [
+        \   {'catalog': '', 'schema': '', 'name': 'mr_test', 'type': 'table', 'remarks': ''},
+        \]
+        Expect g:C.tables({'table': '%test'}) ==# [
+        \   {'catalog': '', 'schema': '', 'name': 'mr_test', 'type': 'table', 'remarks': ''},
+        \]
+
+        Expect g:C.columns() ==# [
+        \   {'catalog': '', 'schema': '', 'table': 'mr_test', 'name': 'id',  'type_name': 'integer', 'ordinal_position': '0', 'nullable': 't', 'remarks': ''},
+        \   {'catalog': '', 'schema': '', 'table': 'mr_test', 'name': 'str', 'type_name': 'varchar', 'ordinal_position': '1', 'nullable': 't', 'remarks': ''},
+        \]
+        Expect g:C.columns({'column': '%t%'}) ==# [
+        \   {'catalog': '', 'schema': '', 'table': 'mr_test', 'name': 'str', 'type_name': 'varchar', 'ordinal_position': '1', 'nullable': 't', 'remarks': ''},
+        \]
+    endfunction
+
+    describe 'vdbc.driver.pg'
+        before
+            let g:C= vdbc#connect({
+            \   'driver':   'pg',
+            \   'dbname':   'test_vdbc',
+            \   'username': 'postgres',
+            \})
+        end
+
+        after
+            call g:C.disconnect()
+        end
+
+        it 'is okay to use it'
+            call s:test_for_postgres()
+        end
+    end
+
+    describe 'vdbc.driver.pg_libpq'
+        before
+            let g:C= vdbc#connect({
+            \   'driver':   'pg_libpq',
+            \   'dbname':   'test_vdbc',
+            \   'username': 'postgres',
+            \})
+        end
+
+        after
+            call g:C.disconnect()
+        end
+
+        it 'is okay to use it'
+            call s:test_for_postgres()
+        end
+    end
+
+    describe 'vdbc.driver.sqlite3'
+        before
+            let g:C= vdbc#connect({
+            \   'driver':   'sqlite3',
+            \   'dbname':   './test_vdbc.db',
+            \})
+        end
+
+        after
+            call g:C.disconnect()
+        end
+
+        it 'is okay to use it'
+            call s:test_for_sqlite3()
+        end
+    end
+
+    describe 'vdbc.driver.sqlite3_libsqlite3'
+        before
+            let g:C= vdbc#connect({
+            \   'driver':   'sqlite3_libsqlite3',
+            \   'dbname':   './test_vdbc.db',
+            \})
+        end
+
+        after
+            call g:C.disconnect()
+        end
+
+        it 'is okay to use it'
+            call s:test_for_sqlite3()
+        end
     end
 end

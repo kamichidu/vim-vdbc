@@ -3,7 +3,7 @@ filetype plugin indent on
 
 describe 'The Introspection API'
     function! s:test_for_postgres()
-        Expect expr { g:C.catalogs() } to_throw 'not supported'
+        Expect g:C.catalogs() ==# []
 
         Expect g:C.schemata({'schema': 'public'}) ==# [
         \   {'catalog': '', 'name': 'public'},
@@ -26,8 +26,8 @@ describe 'The Introspection API'
     endfunction
 
     function! s:test_for_sqlite3()
-        Expect expr { g:C.catalogs() } to_throw 'not supported'
-        Expect expr { g:C.schemata() } to_throw 'not supported'
+        Expect g:C.catalogs() ==# []
+        Expect g:C.schemata() ==# []
 
         Expect g:C.tables() ==# [
         \   {'catalog': '', 'schema': '', 'name': 'mr_test', 'type': 'table', 'remarks': ''},

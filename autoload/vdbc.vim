@@ -129,7 +129,9 @@ endfunction
 
 " TODO: remove or change api
 function! s:vdbc.databases(...)
-    call s:throw_if_unsupported(self.driver, 'databases')
+    if !has_key(self.driver, 'databases')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
 
@@ -137,7 +139,9 @@ function! s:vdbc.databases(...)
 endfunction
 
 function! s:vdbc.catalogs(...)
-    call s:throw_if_unsupported(self.driver, 'catalogs')
+    if !has_key(self.driver, 'catalogs')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
     let args= extend(
@@ -151,7 +155,9 @@ function! s:vdbc.catalogs(...)
 endfunction
 
 function! s:vdbc.schemata(...)
-    call s:throw_if_unsupported(self.driver, 'schemata')
+    if !has_key(self.driver, 'schemata')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
     let args= extend(
@@ -167,7 +173,9 @@ endfunction
 
 " catalog, schema
 function! s:vdbc.tables(...)
-    call s:throw_if_unsupported(self.driver, 'tables')
+    if !has_key(self.driver, 'tables')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
     let args= extend(
@@ -195,7 +203,9 @@ endfunction
 
 " catalog, schema, table
 function! s:vdbc.columns(...)
-    call s:throw_if_unsupported(self.driver, 'tables')
+    if !has_key(self.driver, 'columns')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
     let args= extend(
@@ -226,7 +236,9 @@ endfunction
 
 " catalog, schema, table
 function! s:vdbc.foreign_keys(...)
-    call s:throw_if_unsupported(self.driver, 'foreign_keys')
+    if !has_key(self.driver, 'foreign_keys')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
 
@@ -235,7 +247,9 @@ endfunction
 
 " catalog, schema, table
 function! s:vdbc.indices(...)
-    call s:throw_if_unsupported(self.driver, 'indices')
+    if !has_key(self.driver, 'indices')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
 
@@ -244,7 +258,9 @@ endfunction
 
 " catalog, schema
 function! s:vdbc.sequences(...)
-    call s:throw_if_unsupported(self.driver, 'sequences')
+    if !has_key(self.driver, 'sequences')
+        return []
+    endif
 
     let args= get(a:000, 0, {})
 

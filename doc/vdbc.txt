@@ -2,7 +2,7 @@
 
 Version: 0.0.1
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 16-Aug-2014.
+Last Change: 02-Nov-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -88,6 +88,11 @@ Functions ~
 >
 			vdbc#connect_by_dsn('sqlite3_libsqlite3:dbname=./dbfile')
 <
+
+							      *vdbc#version()*
+	vdbc#version()
+		get a version of |vdbc|. this is useful to check |vdbc|
+		existence.
 
 VDBC Object ~
 														   *vdbc.disconnect()*
@@ -441,4 +446,4 @@ Standard Drivers ~
 			(nothing)
 
 ==============================================================================
-vim:tw=78:ts=4:ft=help:norl:fen:noet:
+vim:tw=78:ts=8:ft=help:norl:fen:noet:

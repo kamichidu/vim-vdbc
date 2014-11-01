@@ -47,6 +47,10 @@ function! vdbc#Vim_Message()
     return s:M
 endfunction
 
+function! vdbc#version()
+    return 'v0.0.1'
+endfunction
+
 function! s:available_drivers()
     let driver_names= map(
     \   split(
